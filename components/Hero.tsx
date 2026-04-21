@@ -30,7 +30,7 @@ export default function Hero() {
           <div>
             <h1
               className="text-4xl md:text-8xl font-black leading-none mb-6 md:mb-8"
-              style={{ color: 'var(--fg)', wordSpacing: '0.2em' }}
+              style={{ color: 'var(--fg)' }}
             >
               THIS IS WHAT AI<br />GAVE YOU. →
             </h1>
