@@ -2,6 +2,19 @@
 
 import type { ScanResult, Severity } from '@/lib/types';
 
+import type { FlagType } from '@/lib/types';
+
+const FLAG_LABEL: Partial<Record<FlagType, string>> = {
+  nonexistent: '❌ NOT FOUND',
+  recently_registered: '⚠️  NEW PKG',
+  low_downloads: '⚠️  LOW DL',
+  suspicious_script: '⚠️  MALICIOUS',
+  outdated: '⬆️  OUTDATED',
+  low_adoption_latest: '⚠️  LOW ADOPT',
+  clean: '✅ CLEAN',
+  unsupported: '—  N/A',
+};
+
 const SEVERITY_LABEL: Record<Severity, string> = {
   critical: '❌ CRITICAL',
   high: '⚠️  HIGH',
@@ -57,6 +70,74 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
   if (results.length === 0) return null;
 
   const { critical, warnings, clean } = buildSummary(results);
+  const deps = results.filter(r => !r.package.isDev);
+  const devDeps = results.filter(r => r.package.isDev);
+
+  function renderRow(r: ScanResult, i: number, globalIndex: number) {
+    const fileVer = r.package.version ?? '—';
+    const latestVer = r.meta.latestVersion ?? '—';
+    const versionMismatch = r.meta.latestVersion && r.package.version && r.package.version !== r.meta.latestVersion;
+    const flagLabel = FLAG_LABEL[r.flag] ?? SEVERITY_LABEL[r.severity];
+
+    return (
+      <div
+        key={`${r.package.name}-${globalIndex}`}
+        className="px-3 md:px-4 py-4 border-b animate-fade-in-up"
+        style={{ borderColor: 'var(--border)', animationDelay: `${Math.min(globalIndex * 30, 400)}ms`, animationFillMode: 'both', opacity: 0 }}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+          <div className="flex items-center gap-3 min-w-0 flex-wrap">
+            <span className="text-xs shrink-0" style={{ color: SEVERITY_COLOR[r.severity] }}>
+              {flagLabel}
+            </span>
+            <span className="text-xs font-bold" style={{ color: 'var(--fg)' }}>
+              {r.package.name}
+              {r.package.version && (
+                <span style={{ color: 'var(--muted)', fontWeight: 'normal' }}>@{r.package.version}</span>
+              )}
+            </span>
+          </div>
+          {r.registryUrl && (
+            <a href={r.registryUrl} target="_blank" rel="noopener noreferrer"
+              className="text-xs shrink-0 transition-colors" style={{ color: 'var(--muted)' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+              VIEW ↗
+            </a>
+          )}
+        </div>
+        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{r.reason}</p>
+        {r.meta.exists && (
+          <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs" style={{ color: 'var(--muted)' }}>
+            <span>FILE <span style={{ color: 'var(--fg)' }}>{fileVer}</span></span>
+            <span>
+              LATEST{' '}
+              <span style={{ color: versionMismatch ? 'var(--warning)' : 'var(--fg)' }}>{latestVer}</span>
+              {versionMismatch && <span style={{ color: 'var(--warning)' }}> ↑</span>}
+            </span>
+            <span>DL <span style={{ color: 'var(--fg)' }}>{fmtDownloads(r.meta.monthlyDownloads)}</span></span>
+            <span>UPDATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.updatedAt)}</span></span>
+            <span>CREATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.createdAt)}</span></span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderGroup(group: ScanResult[], label: string, offset: number) {
+    if (group.length === 0) return null;
+    return (
+      <>
+        <div
+          className="px-3 md:px-4 py-2 text-xs tracking-widest"
+          style={{ background: '#111', color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}
+        >
+          {label} <span style={{ color: 'var(--fg)' }}>{group.length}</span>
+        </div>
+        {group.map((r, i) => renderRow(r, i, offset + i))}
+      </>
+    );
+  }
 
   function exportJson() {
     downloadFile(JSON.stringify(results, null, 2), 'slopcheck-results.json', 'application/json');
@@ -116,60 +197,8 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
 
       {/* Table */}
       <div style={{ border: '1px solid var(--border)' }}>
-        {results.map((r, i) => {
-          const fileVer = r.package.version ?? '—';
-          const latestVer = r.meta.latestVersion ?? '—';
-          const versionMismatch = r.meta.latestVersion && r.package.version && r.package.version !== r.meta.latestVersion;
-
-          return (
-            <div
-              key={`${r.package.name}-${i}`}
-              className="px-3 md:px-4 py-4 border-b animate-fade-in-up"
-              style={{ borderColor: 'var(--border)', animationDelay: `${Math.min(i * 30, 300)}ms`, animationFillMode: 'both', opacity: 0 }}
-            >
-              {/* Top row: status + name + link */}
-              <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xs shrink-0" style={{ color: SEVERITY_COLOR[r.severity] }}>
-                    {SEVERITY_LABEL[r.severity]}
-                  </span>
-                  <span className="text-xs font-bold truncate" style={{ color: 'var(--fg)' }}>
-                    {r.package.name}
-                    {r.package.version && (
-                      <span style={{ color: 'var(--muted)', fontWeight: 'normal' }}>@{r.package.version}</span>
-                    )}
-                  </span>
-                </div>
-                {r.registryUrl && (
-                  <a href={r.registryUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-xs shrink-0 transition-colors" style={{ color: 'var(--muted)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
-                    VIEW ↗
-                  </a>
-                )}
-              </div>
-
-              {/* Reason */}
-              <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{r.reason}</p>
-
-              {/* Metadata pills */}
-              {r.meta.exists && (
-                <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs" style={{ color: 'var(--muted)' }}>
-                  <span>FILE <span style={{ color: 'var(--fg)' }}>{fileVer}</span></span>
-                  <span>
-                    LATEST{' '}
-                    <span style={{ color: versionMismatch ? 'var(--warning)' : 'var(--fg)' }}>{latestVer}</span>
-                    {versionMismatch && <span style={{ color: 'var(--warning)' }}> ↑</span>}
-                  </span>
-                  <span>DL <span style={{ color: 'var(--fg)' }}>{fmtDownloads(r.meta.monthlyDownloads)}</span></span>
-                  <span>UPDATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.updatedAt)}</span></span>
-                  <span>CREATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.createdAt)}</span></span>
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {renderGroup(deps, 'DEPENDENCIES', 0)}
+        {devDeps.length > 0 && renderGroup(devDeps, 'DEV DEPENDENCIES', deps.length)}
       </div>
     </div>
   );

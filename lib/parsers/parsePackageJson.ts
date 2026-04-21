@@ -16,13 +16,13 @@ export function parsePackageJson(content: string, includeDevDeps = false): Parse
 
   const deps = (json.dependencies ?? {}) as Record<string, string>;
   for (const [name, version] of Object.entries(deps)) {
-    results.push({ name, version: stripVersion(version), ecosystem: 'npm', raw: `${name}@${version}` });
+    results.push({ name, version: stripVersion(version), ecosystem: 'npm', raw: `${name}@${version}`, isDev: false });
   }
 
   if (includeDevDeps) {
     const devDeps = (json.devDependencies ?? {}) as Record<string, string>;
     for (const [name, version] of Object.entries(devDeps)) {
-      results.push({ name, version: stripVersion(version), ecosystem: 'npm', raw: `${name}@${version}` });
+      results.push({ name, version: stripVersion(version), ecosystem: 'npm', raw: `${name}@${version}`, isDev: true });
     }
   }
 

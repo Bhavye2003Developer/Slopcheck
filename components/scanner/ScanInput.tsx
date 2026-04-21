@@ -20,7 +20,7 @@ interface ScanInputProps {
 export default function ScanInput({ onScan, loading }: ScanInputProps) {
   const [content, setContent] = useState('');
   const [ecosystem, setEcosystem] = useState<EcosystemHint>('auto');
-  const [includeDevDeps, setIncludeDevDeps] = useState(false);
+  const [includeDevDeps, setIncludeDevDeps] = useState(true);
 
   function handleScan() {
     if (!content.trim() || loading) return;
