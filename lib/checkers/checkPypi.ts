@@ -1,35 +1,37 @@
 import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
 import { API } from '../api';
+import { fetchWithTimeout, TEN_MIN, ONE_HOUR } from '../fetch';
 
 const LOW_DOWNLOADS_THRESHOLD = 200;
 const RECENT_DAYS = 30;
 const LOW_ADOPTION_DAYS = 14;
 
+type PypiData = Record<string, unknown>;
+type PypiDownloads = { data?: { last_month?: number } };
+
 function isRecent(dateStr: string): boolean {
   return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24) < RECENT_DAYS;
-}
-
-async function trackedFetch(url: string, pkg: string, label: string, log?: NetworkLogger): Promise<Response | null> {
-  const t = Date.now();
-  try {
-    const res = await fetch(url);
-    log?.({ pkg, label, url, status: res.status, ok: res.ok, ms: Date.now() - t });
-    return res;
-  } catch {
-    log?.({ pkg, label, url, ok: false, ms: Date.now() - t });
-    return null;
-  }
 }
 
 export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promise<ScanResult> {
   const registryUrl = API.pypi.page(pkg.name);
 
-  const res = await trackedFetch(API.pypi.registry(pkg.name), pkg.name, 'PyPI registry', log);
-  if (!res || !res.ok) {
+  const [registryResult, downloadsResult] = await Promise.allSettled([
+    fetchWithTimeout<PypiData>(API.pypi.registry(pkg.name), {
+      timeout: 4000, ttl: TEN_MIN, log, logPkg: pkg.name, logLabel: 'PyPI registry',
+    }),
+    fetchWithTimeout<PypiDownloads>(API.pypi.downloads(pkg.name.toLowerCase()), {
+      timeout: 2000, ttl: ONE_HOUR, log, logPkg: pkg.name, logLabel: 'PyPI downloads',
+    }),
+  ]);
+
+  const pypiData = registryResult.status === 'fulfilled' ? registryResult.value : null;
+  const dlData = downloadsResult.status === 'fulfilled' ? downloadsResult.value : null;
+
+  if (!pypiData) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Package not found on PyPI', registryUrl, meta: { exists: false } };
   }
 
-  const pypiData = await res.json() as Record<string, unknown>;
   const info = pypiData.info as Record<string, unknown> | undefined;
   const latestVersion = info?.version as string | undefined;
 
@@ -42,12 +44,7 @@ export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promis
     updatedAt = dates[dates.length - 1];
   }
 
-  let monthlyDownloads: number | undefined;
-  const dlRes = await trackedFetch(API.pypi.downloads(pkg.name.toLowerCase()), pkg.name, 'PyPI downloads', log);
-  if (dlRes?.ok) {
-    const dlData = await dlRes.json() as { data?: { last_month?: number } };
-    monthlyDownloads = dlData.data?.last_month;
-  }
+  const monthlyDownloads = dlData?.data?.last_month;
 
   const meta = { exists: true, createdAt, updatedAt, latestVersion, monthlyDownloads };
 
@@ -59,7 +56,6 @@ export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promis
     return { package: pkg, flag: 'low_downloads', severity: 'medium', reason: `Only ${monthlyDownloads.toLocaleString()} downloads last month (threshold: ${LOW_DOWNLOADS_THRESHOLD})`, registryUrl, meta };
   }
 
-  // Outdated version check -use latest release upload time as adoption proxy
   if (latestVersion && pkg.version && pkg.version !== latestVersion && updatedAt) {
     const latestAgeDays = Math.floor((Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24));
     if (latestAgeDays < LOW_ADOPTION_DAYS) {
