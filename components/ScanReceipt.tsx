@@ -5,7 +5,7 @@ const rows = [
   { icon: '⚠️', severity: 'HIGH',     name: 'pip-utils',          reason: '43 DOWNLOADS',  color: 'var(--warning)'  },
   { icon: '✅', severity: 'CLEAN',    name: 'numpy',              reason: '',              color: 'var(--clean)'    },
   { icon: '✅', severity: 'CLEAN',    name: 'flask',              reason: '',              color: 'var(--clean)'    },
-  { icon: '✅', severity: 'CLEAN',    name: 'sqlalchemy',         reason: '+ 8 more…',    color: 'var(--clean)'    },
+  { icon: '✅', severity: 'CLEAN',    name: 'sqlalchemy',         reason: '+ 8 more...',   color: 'var(--clean)'    },
 ];
 
 export default function ScanReceipt() {

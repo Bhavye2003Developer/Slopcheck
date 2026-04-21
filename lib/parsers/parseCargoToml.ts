@@ -33,7 +33,7 @@ export function parseCargoToml(content: string): ParsedPackage[] {
       continue;
     }
 
-    // name = { git = "...", ... }  — no version, still track it
+    // name = { git = "...", ... }  -no version, still track it
     const inlineNoVer = line.match(/^([\w-]+)\s*=\s*\{/);
     if (inlineNoVer) {
       results.push({ name: inlineNoVer[1], version: null, ecosystem: 'cargo', raw: line });

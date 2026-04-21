@@ -17,7 +17,7 @@ const checks = [
     icon: '⚠️',
     name: 'LOW DOWNLOADS',
     desc: 'Below ecosystem download floor',
-    example: 'npm <500/mo · PyPI <200/mo',
+    example: 'npm <500/mo |PyPI <200/mo',
     color: 'var(--warning)',
   },
   {

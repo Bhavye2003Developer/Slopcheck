@@ -70,11 +70,11 @@ export async function checkNpm(pkg: ParsedPackage, log?: NetworkLogger): Promise
     if (latestPublishedAt) {
       const latestAgeDays = Math.floor((Date.now() - new Date(latestPublishedAt).getTime()) / (1000 * 60 * 60 * 24));
       if (latestAgeDays < LOW_ADOPTION_DAYS) {
-        const dl = monthlyDownloads !== undefined ? ` · ${monthlyDownloads.toLocaleString()} total dl/mo` : '';
-        return { package: pkg, flag: 'low_adoption_latest', severity: 'medium', reason: `Latest v${latestVersion} is only ${latestAgeDays} days old — low adoption, your v${pkg.version} may be more stable${dl}`, registryUrl, meta };
+        const dl = monthlyDownloads !== undefined ? ` |${monthlyDownloads.toLocaleString()} total dl/mo` : '';
+        return { package: pkg, flag: 'low_adoption_latest', severity: 'medium', reason: `Latest v${latestVersion} is only ${latestAgeDays} days old -low adoption, your v${pkg.version} may be more stable${dl}`, registryUrl, meta };
       }
     }
-    return { package: pkg, flag: 'outdated', severity: 'medium', reason: `Using v${pkg.version}, latest is v${latestVersion} — consider upgrading`, registryUrl, meta };
+    return { package: pkg, flag: 'outdated', severity: 'medium', reason: `Using v${pkg.version}, latest is v${latestVersion} -consider upgrading`, registryUrl, meta };
   }
 
   return { package: pkg, flag: 'clean', severity: 'clean', reason: 'Passes all checks', registryUrl, meta };

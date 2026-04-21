@@ -70,7 +70,7 @@ export async function checkGo(pkg: ParsedPackage, log?: NetworkLogger): Promise<
   }
 
   if (latestVersion && pkg.version && pkg.version !== latestVersion) {
-    return { package: pkg, flag: 'outdated', severity: 'medium', reason: `Using ${pkg.version}, latest is ${latestVersion} — consider upgrading`, registryUrl, meta };
+    return { package: pkg, flag: 'outdated', severity: 'medium', reason: `Using ${pkg.version}, latest is ${latestVersion} -consider upgrading`, registryUrl, meta };
   }
 
   return { package: pkg, flag: 'clean', severity: 'clean', reason: 'Passes all checks', registryUrl, meta };

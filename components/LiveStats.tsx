@@ -136,7 +136,7 @@ export default function LiveStats() {
         </div>
       )) : [0, 1, 2].map(i => (
         <div key={i} className="px-6 md:px-8 py-10" style={{ background: 'var(--bg)' }}>
-          <div className="text-4xl font-bold mb-3 tracking-tight" style={{ color: '#222' }}>——</div>
+          <div className="text-4xl font-bold mb-3 tracking-tight" style={{ color: '#222' }}>--</div>
         </div>
       ))}
     </div>

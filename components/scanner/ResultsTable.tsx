@@ -12,7 +12,7 @@ const FLAG_LABEL: Partial<Record<FlagType, string>> = {
   outdated: '⬆️  OUTDATED',
   low_adoption_latest: '⚠️  LOW ADOPT',
   clean: '✅ CLEAN',
-  unsupported: '—  N/A',
+  unsupported: 'N/A',
 };
 
 const SEVERITY_LABEL: Record<Severity, string> = {
@@ -20,7 +20,7 @@ const SEVERITY_LABEL: Record<Severity, string> = {
   high: '⚠️  HIGH',
   medium: '⚠️  MEDIUM',
   clean: '✅ CLEAN',
-  unsupported: '—  N/A',
+  unsupported: 'N/A',
 };
 
 const SEVERITY_COLOR: Record<Severity, string> = {
@@ -45,12 +45,12 @@ function buildSummary(results: ScanResult[]) {
 }
 
 function fmtDate(iso?: string): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function fmtDownloads(n?: number): string {
-  if (n === undefined) return '—';
+  if (n === undefined) return '-';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M/mo`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K/mo`;
   return `${n}/mo`;
@@ -74,8 +74,8 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
   const devDeps = results.filter(r => r.package.isDev);
 
   function renderRow(r: ScanResult, i: number, globalIndex: number) {
-    const fileVer = r.package.version ?? '—';
-    const latestVer = r.meta.latestVersion ?? '—';
+    const fileVer = r.package.version ?? '-';
+    const latestVer = r.meta.latestVersion ?? '-';
     const versionMismatch = r.meta.latestVersion && r.package.version && r.package.version !== r.meta.latestVersion;
     const flagLabel = FLAG_LABEL[r.flag] ?? SEVERITY_LABEL[r.severity];
 
@@ -113,7 +113,7 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
             <span style={{ color: '#888' }}>
               LATEST{' '}
               <span style={{ color: versionMismatch ? 'var(--warning)' : 'var(--fg)' }}>{latestVer}</span>
-              {versionMismatch && <span style={{ color: 'var(--warning)' }}> ↑</span>}
+              {versionMismatch && <span style={{ color: 'var(--warning)' }}> ^</span>}
             </span>
             <span style={{ color: '#888' }}>DL <span style={{ color: 'var(--fg)' }}>{fmtDownloads(r.meta.monthlyDownloads)}</span></span>
             <span style={{ color: '#888' }}>UPDATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.updatedAt)}</span></span>
@@ -146,12 +146,12 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
   function exportText() {
     const lines = results.map(r => {
       const ver = r.package.version ? `@${r.package.version}` : '';
-      const latest = r.meta.latestVersion ? ` → latest ${r.meta.latestVersion}` : '';
-      const dl = r.meta.monthlyDownloads !== undefined ? ` · ${fmtDownloads(r.meta.monthlyDownloads)}` : '';
-      const updated = r.meta.updatedAt ? ` · updated ${fmtDate(r.meta.updatedAt)}` : '';
+      const latest = r.meta.latestVersion ? ` -> latest ${r.meta.latestVersion}` : '';
+      const dl = r.meta.monthlyDownloads !== undefined ? ` |${fmtDownloads(r.meta.monthlyDownloads)}` : '';
+      const updated = r.meta.updatedAt ? ` |updated ${fmtDate(r.meta.updatedAt)}` : '';
       return `${SEVERITY_LABEL[r.severity].padEnd(14)} ${(r.package.name + ver).padEnd(45)} ${r.reason}${latest}${dl}${updated}`;
     });
-    const summary = `\n---\n${critical} critical · ${warnings} warnings · ${clean} clean`;
+    const summary = `\n---\n${critical} critical |${warnings} warnings |${clean} clean`;
     downloadFile(lines.join('\n') + summary, 'slopcheck-results.txt', 'text/plain');
   }
 
@@ -167,7 +167,7 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
           <span style={{ color: 'var(--clean)' }}>{clean} clean</span>
           {scanning && (
             <span className="ml-1 px-2 py-0.5" style={{ border: '1px solid var(--warning)', color: 'var(--warning)' }}>
-              SCANNING…
+              SCANNING...
             </span>
           )}
         </p>

@@ -15,13 +15,13 @@ interface TickerProps {
 
 export default function Ticker({ items = DEFAULT_ITEMS }: TickerProps) {
   const repeated = [...items, ...items];
-  const text = repeated.join(' · ');
+  const text = repeated.join(' |');
 
   return (
     <div className="hidden md:block overflow-hidden border-t border-b py-2" style={{ borderColor: 'var(--border)' }}>
       <div className="flex whitespace-nowrap animate-ticker" style={{ width: 'max-content' }}>
         <span className="text-xs tracking-widest px-8" style={{ color: 'var(--critical)' }}>
-          {text} · {text}
+          {text} |{text}
         </span>
       </div>
     </div>

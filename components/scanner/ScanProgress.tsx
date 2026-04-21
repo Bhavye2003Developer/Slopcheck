@@ -12,7 +12,7 @@ export default function ScanProgress({ done, total }: ScanProgressProps) {
   return (
     <div className="py-4 text-xs tracking-widest" style={{ color: 'var(--muted)' }}>
       <span style={{ color: 'var(--warning)' }}>SCANNING</span>
-      {' · '}
+      {' | '}
       <span style={{ color: 'var(--fg)' }}>{done} / {total}</span>
       {' packages checked '}
       <span style={{ color: 'var(--warning)', letterSpacing: '0' }}>{bar}</span>

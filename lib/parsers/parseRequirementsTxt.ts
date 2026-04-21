@@ -9,7 +9,7 @@ export function parseRequirementsTxt(content: string): ParsedPackage[] {
     .filter(line => line && !line.startsWith('#') && !line.startsWith('-'))
     .map(line => {
       const raw = line;
-      // Strip extras like flask[async] → flask
+      // Strip extras like flask[async] -> flask
       const withoutExtras = line.replace(/\[.*?\]/, '');
       // Strip version specifiers
       const name = withoutExtras.split(/[=!<>~^;]/)[0].trim();

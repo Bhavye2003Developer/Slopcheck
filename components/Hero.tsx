@@ -5,10 +5,10 @@ import Ticker from './Ticker';
 
 const badges = [
   { label: 'ID/', value: 'SLC-0X1' },
-  { label: 'STATUS ·', value: 'LIVE' },
+  { label: 'STATUS |', value: 'LIVE' },
   { label: 'PKG-CHECKS/', value: '5' },
   { label: 'LATENCY/', value: '~2S' },
-  { label: 'SOURCE/', value: 'NPM × PYPI' },
+  { label: 'SOURCE/', value: 'NPM x PYPI' },
 ];
 
 export default function Hero() {
@@ -32,7 +32,7 @@ export default function Hero() {
               className="text-4xl md:text-8xl font-black leading-none tracking-tight mb-6 md:mb-8"
               style={{ color: 'var(--fg)' }}
             >
-              THIS IS WHAT AI<br />GAVE YOU. →
+              THIS IS WHAT AI<br />GAVE YOU. {'->'}
             </h1>
             <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: 'var(--muted)' }}>
               AI coding assistants hallucinate package names.<br />
@@ -45,7 +45,7 @@ export default function Hero() {
                 className="inline-block px-6 py-3 text-xs font-bold tracking-widest transition-opacity hover:opacity-80"
                 style={{ background: 'var(--fg)', color: 'var(--bg)' }}
               >
-                SCAN NOW →
+                SCAN NOW {'->'}
               </a>
               <a
                 href="https://github.com/Bhavye2003Developer/Slopcheck"
@@ -56,7 +56,7 @@ export default function Hero() {
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
               >
-                VIEW ON GITHUB ↗
+                VIEW ON GITHUB [^]
               </a>
             </div>
           </div>

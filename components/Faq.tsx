@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'CAN THIS CATCH MALICIOUS PACKAGES THAT DO EXIST?',
-    a: 'Partially. We flag suspicious post-install scripts (curl, wget, eval) in npm packages. We do not scan source code or compare against CVE databases — that\'s out of scope for v1.',
+    a: 'Partially. We flag suspicious post-install scripts (curl, wget, eval) in npm packages. We do not scan source code or compare against CVE databases - that\'s out of scope for v1.',
   },
   {
     q: 'IS THIS OPEN SOURCE?',

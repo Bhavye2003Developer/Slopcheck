@@ -41,7 +41,7 @@ export default function NetworkTrail({ events }: NetworkTrailProps) {
               {e.cached ? (
                 <span className="shrink-0 w-12 text-center text-xs px-1" style={{ color: 'var(--muted)', border: '1px solid var(--border)' }}>CACHE</span>
               ) : e.ok === undefined ? (
-                <span className="shrink-0 w-12 text-center" style={{ color: 'var(--muted)' }}>…</span>
+                <span className="shrink-0 w-12 text-center" style={{ color: 'var(--muted)' }}>...</span>
               ) : e.ok ? (
                 <span className="shrink-0 w-12 text-center" style={{ color: 'var(--clean)' }}>{e.status ?? 'OK'}</span>
               ) : (

@@ -47,7 +47,7 @@ export default function Nav() {
             className="text-xs tracking-wider transition-colors" style={{ color: 'var(--muted)' }}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
-            GITHUB →
+            GITHUB {'->'}
           </a>
         </div>
 
@@ -74,7 +74,7 @@ export default function Nav() {
           <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
             className="text-xs tracking-wider" style={{ color: 'var(--muted)' }}
             onClick={() => setMenuOpen(false)}>
-            GITHUB →
+            GITHUB {'->'}
           </a>
         </div>
       )}
