@@ -49,9 +49,9 @@ Ordered by dependency: foundation → logic → UI → integration.
 
 ## Phase 5 — Scanner UI Components
 
-- [ ] `components/scanner/ScanInput.tsx` — textarea paste area, format dropdown (auto-detect + manual override), devDependencies toggle, SCAN button; controlled component; emits `onScan(content, ecosystem)`
-- [ ] `components/scanner/ScanProgress.tsx` — progress bar with `SCANNING · N / M packages checked ████░░ X%`; accepts `done` and `total` props
-- [ ] `components/scanner/ResultsTable.tsx` — table with columns: Package · Status · Reason · Registry Link; sorted by severity (critical → high → medium → clean); summary line (`N critical · N warnings · N clean`); export JSON and plain text buttons
+- [x] `components/scanner/ScanInput.tsx` — textarea paste area, format dropdown (auto-detect + manual override), devDependencies toggle, SCAN button; controlled component; emits `onScan(content, ecosystem)`
+- [x] `components/scanner/ScanProgress.tsx` — progress bar with `SCANNING · N / M packages checked ████░░ X%`; accepts `done` and `total` props
+- [x] `components/scanner/ResultsTable.tsx` — table with columns: Package · Status · Reason · Registry Link; sorted by severity (critical → high → medium → clean); summary line (`N critical · N warnings · N clean`); export JSON and plain text buttons
 
 ---
 
