@@ -1,4 +1,5 @@
 import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
+import { API } from '../api';
 
 const SUSPICIOUS_KEYWORDS = ['curl', 'wget', 'eval', 'exec', 'fetch'];
 const LOW_DOWNLOADS_THRESHOLD = 500;
@@ -27,9 +28,9 @@ async function trackedFetch(url: string, pkg: string, label: string, log?: Netwo
 
 export async function checkNpm(pkg: ParsedPackage, log?: NetworkLogger): Promise<ScanResult> {
   const encodedName = pkg.name.startsWith('@') ? pkg.name.replace('/', '%2F') : pkg.name;
-  const registryUrl = `https://www.npmjs.com/package/${pkg.name}`;
+  const registryUrl = API.npm.page(pkg.name);
 
-  const res = await trackedFetch(`https://registry.npmjs.org/${encodedName}`, pkg.name, 'npm registry', log);
+  const res = await trackedFetch(API.npm.registry(encodedName), pkg.name, 'npm registry', log);
   if (!res || !res.ok) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Package not found on npm registry', registryUrl, meta: { exists: false } };
   }
@@ -46,7 +47,7 @@ export async function checkNpm(pkg: ParsedPackage, log?: NetworkLogger): Promise
   const hasPostInstall = Boolean(postInstall && isSuspiciousScript(postInstall));
 
   let monthlyDownloads: number | undefined;
-  const dlRes = await trackedFetch(`https://api.npmjs.org/downloads/point/last-month/${encodedName}`, pkg.name, 'npm downloads', log);
+  const dlRes = await trackedFetch(API.npm.downloads(encodedName), pkg.name, 'npm downloads', log);
   if (dlRes?.ok) {
     const dlData = await dlRes.json() as { downloads?: number };
     monthlyDownloads = dlData.downloads;

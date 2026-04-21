@@ -1,4 +1,5 @@
 import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
+import { API } from '../api';
 
 const LOW_DOWNLOADS_THRESHOLD = 500;
 const RECENT_DAYS = 30;
@@ -21,9 +22,9 @@ async function trackedFetch(url: string, pkg: string, label: string, log?: Netwo
 }
 
 export async function checkCargo(pkg: ParsedPackage, log?: NetworkLogger): Promise<ScanResult> {
-  const registryUrl = `https://crates.io/crates/${pkg.name}`;
+  const registryUrl = API.cargo.page(pkg.name);
 
-  const res = await trackedFetch(`https://crates.io/api/v1/crates/${pkg.name}`, pkg.name, 'crates.io registry', log);
+  const res = await trackedFetch(API.cargo.registry(pkg.name), pkg.name, 'crates.io registry', log);
   if (!res || !res.ok) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Crate not found on crates.io', registryUrl, meta: { exists: false } };
   }

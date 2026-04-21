@@ -1,4 +1,5 @@
 import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
+import { API } from '../api';
 
 const LOW_DOWNLOADS_THRESHOLD = 1000;
 const RECENT_DAYS = 30;
@@ -21,9 +22,9 @@ async function trackedFetch(url: string, pkg: string, label: string, log?: Netwo
 }
 
 export async function checkRubyGems(pkg: ParsedPackage, log?: NetworkLogger): Promise<ScanResult> {
-  const registryUrl = `https://rubygems.org/gems/${pkg.name}`;
+  const registryUrl = API.rubygems.page(pkg.name);
 
-  const res = await trackedFetch(`https://rubygems.org/api/v1/gems/${pkg.name}.json`, pkg.name, 'RubyGems registry', log);
+  const res = await trackedFetch(API.rubygems.registry(pkg.name), pkg.name, 'RubyGems registry', log);
   if (!res || !res.ok) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Gem not found on RubyGems', registryUrl, meta: { exists: false } };
   }

@@ -1,4 +1,5 @@
 import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
+import { API } from '../api';
 
 const RECENT_DAYS = 30;
 
@@ -20,10 +21,10 @@ function isRecent(dateStr: string): boolean {
 
 export async function checkGo(pkg: ParsedPackage, log?: NetworkLogger): Promise<ScanResult> {
   const encodedModule = encodeURIComponent(pkg.name);
-  const registryUrl = `https://pkg.go.dev/${pkg.name}`;
+  const registryUrl = API.go.page(pkg.name);
 
   // Check version list from Go proxy
-  const listRes = await trackedFetch(`https://proxy.golang.org/${encodedModule}/@v/list`, pkg.name, 'Go proxy list', log);
+  const listRes = await trackedFetch(API.go.list(encodedModule), pkg.name, 'Go proxy list', log);
   if (!listRes || !listRes.ok) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Module not found on Go proxy', registryUrl, meta: { exists: false } };
   }
@@ -37,7 +38,7 @@ export async function checkGo(pkg: ParsedPackage, log?: NetworkLogger): Promise<
   let updatedAt: string | undefined;
   if (latestVersion) {
     const infoRes = await trackedFetch(
-      `https://proxy.golang.org/${encodedModule}/@v/${encodeURIComponent(latestVersion)}.info`,
+      API.go.info(encodedModule, encodeURIComponent(latestVersion)),
       pkg.name, 'Go proxy info', log
     );
     if (infoRes?.ok) {
@@ -50,7 +51,7 @@ export async function checkGo(pkg: ParsedPackage, log?: NetworkLogger): Promise<
   const firstVersion = versions[0];
   if (firstVersion && firstVersion !== latestVersion) {
     const firstInfoRes = await trackedFetch(
-      `https://proxy.golang.org/${encodedModule}/@v/${encodeURIComponent(firstVersion)}.info`,
+      API.go.info(encodedModule, encodeURIComponent(firstVersion)),
       pkg.name, 'Go proxy first version', log
     );
     if (firstInfoRes?.ok) {

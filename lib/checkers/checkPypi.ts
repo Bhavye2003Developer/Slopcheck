@@ -1,4 +1,5 @@
 import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
+import { API } from '../api';
 
 const LOW_DOWNLOADS_THRESHOLD = 200;
 const RECENT_DAYS = 30;
@@ -21,9 +22,9 @@ async function trackedFetch(url: string, pkg: string, label: string, log?: Netwo
 }
 
 export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promise<ScanResult> {
-  const registryUrl = `https://pypi.org/project/${pkg.name}`;
+  const registryUrl = API.pypi.page(pkg.name);
 
-  const res = await trackedFetch(`https://pypi.org/pypi/${pkg.name}/json`, pkg.name, 'PyPI registry', log);
+  const res = await trackedFetch(API.pypi.registry(pkg.name), pkg.name, 'PyPI registry', log);
   if (!res || !res.ok) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Package not found on PyPI', registryUrl, meta: { exists: false } };
   }
@@ -42,7 +43,7 @@ export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promis
   }
 
   let monthlyDownloads: number | undefined;
-  const dlRes = await trackedFetch(`https://pypistats.org/api/packages/${pkg.name.toLowerCase()}/recent`, pkg.name, 'PyPI downloads', log);
+  const dlRes = await trackedFetch(API.pypi.downloads(pkg.name.toLowerCase()), pkg.name, 'PyPI downloads', log);
   if (dlRes?.ok) {
     const dlData = await dlRes.json() as { data?: { last_month?: number } };
     monthlyDownloads = dlData.data?.last_month;
