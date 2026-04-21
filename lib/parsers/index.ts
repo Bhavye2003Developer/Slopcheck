@@ -21,7 +21,7 @@ export function detectEcosystem(content: string): Ecosystem {
   if (trimmed.startsWith('{') && trimmed.includes('"dependencies"')) return 'npm';
   if (trimmed.includes('[project]') || trimmed.includes('[tool.poetry]')) return 'pypi';
   if (trimmed.match(/^module\s+\S+/m) || trimmed.includes('go ')) return 'go';
-  if (trimmed.includes('[package]') && trimmed.includes('[dependencies]')) return 'cargo';
+  if (trimmed.includes('[dependencies]')) return 'cargo';
   if (trimmed.match(/^gem\s+['"]/m) || trimmed.match(/^source\s+['"]/m)) return 'rubygems';
   // Default: requirements.txt style
   return 'pypi';

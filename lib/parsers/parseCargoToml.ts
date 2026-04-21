@@ -2,21 +2,41 @@ import type { ParsedPackage } from '../types';
 
 export function parseCargoToml(content: string): ParsedPackage[] {
   const results: ParsedPackage[] = [];
+  const lines = content.split('\n');
 
-  const depsMatch = content.match(/\[dependencies\]([\s\S]*?)(?=\[|$)/m);
-  if (!depsMatch) return results;
+  let inDeps = false;
 
-  const lines = depsMatch[1].split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
-  for (const line of lines) {
-    // name = "1.0" or name = { version = "1.0", ... }
-    const simple = line.match(/^([\w-]+)\s*=\s*"([^"]+)"/);
-    if (simple) {
-      results.push({ name: simple[1], version: simple[2].replace(/^[\^~>=]+/, ''), ecosystem: 'cargo', raw: line.trim() });
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    // Section header
+    if (line.startsWith('[')) {
+      // [dependencies] or [dependencies.foo] both count
+      inDeps = line === '[dependencies]' || line.startsWith('[dependencies.');
       continue;
     }
-    const inline = line.match(/^([\w-]+)\s*=\s*\{.*version\s*=\s*"([^"]+)"/);
-    if (inline) {
-      results.push({ name: inline[1], version: inline[2].replace(/^[\^~>=]+/, ''), ecosystem: 'cargo', raw: line.trim() });
+
+    if (!inDeps) continue;
+
+    // name = "1.2.3"  or  name = "^1.2"
+    const simple = line.match(/^([\w-]+)\s*=\s*"([^"]*)"/);
+    if (simple) {
+      results.push({ name: simple[1], version: simple[2].replace(/^[\^~>=<* ]+/, ''), ecosystem: 'cargo', raw: line });
+      continue;
+    }
+
+    // name = { version = "1.2.3", ... }
+    const inlineVer = line.match(/^([\w-]+)\s*=\s*\{[^}]*version\s*=\s*"([^"]*)"/);
+    if (inlineVer) {
+      results.push({ name: inlineVer[1], version: inlineVer[2].replace(/^[\^~>=<* ]+/, ''), ecosystem: 'cargo', raw: line });
+      continue;
+    }
+
+    // name = { git = "...", ... }  — no version, still track it
+    const inlineNoVer = line.match(/^([\w-]+)\s*=\s*\{/);
+    if (inlineNoVer) {
+      results.push({ name: inlineNoVer[1], version: null, ecosystem: 'cargo', raw: line });
     }
   }
 
