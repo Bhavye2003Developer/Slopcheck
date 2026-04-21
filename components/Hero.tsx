@@ -1,3 +1,5 @@
+'use client';
+
 import ScanReceipt from './ScanReceipt';
 import Ticker from './Ticker';
 
