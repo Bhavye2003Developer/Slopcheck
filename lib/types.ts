@@ -1,5 +1,17 @@
 export type Ecosystem = 'npm' | 'pypi' | 'rubygems' | 'go' | 'cargo';
 
+export interface NetworkEvent {
+  pkg: string;
+  label: string;
+  url: string;
+  status?: number;
+  ok?: boolean;
+  ms?: number;
+  cached?: boolean;
+}
+
+export type NetworkLogger = (event: NetworkEvent) => void;
+
 export type FlagType =
   | 'nonexistent'
   | 'recently_registered'

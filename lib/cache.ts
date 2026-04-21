@@ -1,11 +1,16 @@
 import type { ScanResult } from './types';
 
-const cache = new Map<string, ScanResult[]>();
+// Per-package cache keyed by ecosystem::name so devDep scans reuse prior results
+const packageCache = new Map<string, ScanResult>();
 
-export function getCached(content: string, ecosystem: string, includeDevDeps: boolean): ScanResult[] | null {
-  return cache.get(`${ecosystem}::${includeDevDeps}::${content}`) ?? null;
+function pkgKey(ecosystem: string, name: string): string {
+  return `${ecosystem}::${name}`;
 }
 
-export function setCached(content: string, ecosystem: string, includeDevDeps: boolean, results: ScanResult[]): void {
-  cache.set(`${ecosystem}::${includeDevDeps}::${content}`, results);
+export function getPackageCached(ecosystem: string, name: string): ScanResult | null {
+  return packageCache.get(pkgKey(ecosystem, name)) ?? null;
+}
+
+export function setPackageCached(result: ScanResult): void {
+  packageCache.set(pkgKey(result.package.ecosystem, result.package.name), result);
 }
