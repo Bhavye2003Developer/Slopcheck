@@ -39,7 +39,7 @@ export async function fetchWithTimeout<T>(url: string, options: FetchOptions): P
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const res = await fetch(url, { signal: controller.signal, ...fetchOptions });
+    const res = await fetch(url, { ...fetchOptions, signal: controller.signal });
     clearTimeout(timer);
     log?.({ pkg: logPkg, label: logLabel, url, status: res.status, ok: res.ok, ms: Date.now() - t });
     if (!res.ok) return null;
