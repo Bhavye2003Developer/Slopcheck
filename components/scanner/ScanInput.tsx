@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { EcosystemHint } from '@/lib/parsers';
+import { detectEcosystem, ECOSYSTEM_META } from '@/lib/parsers';
 
 const FORMAT_OPTIONS: { label: string; value: EcosystemHint }[] = [
   { label: 'AUTO-DETECT', value: 'auto' },
@@ -21,6 +22,15 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
   const [content, setContent] = useState('');
   const [ecosystem, setEcosystem] = useState<EcosystemHint>('auto');
   const [includeDevDeps, setIncludeDevDeps] = useState(true);
+  const [detected, setDetected] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!content.trim()) { setDetected(null); return; }
+    if (ecosystem !== 'auto') { setDetected(null); return; }
+    const eco = detectEcosystem(content);
+    const meta = ECOSYSTEM_META[eco];
+    setDetected(`${meta.file} — ${meta.label}`);
+  }, [content, ecosystem]);
 
   function handleScan() {
     if (!content.trim() || loading) return;
@@ -28,28 +38,25 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
   }
 
   return (
-    <div
-      className="rounded text-xs"
-      style={{ border: '1px solid var(--border)', background: '#0f0f0f' }}
-    >
-      {/* Terminal title bar */}
-      <div
-        className="flex items-center justify-between px-4 py-3 border-b"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <span className="tracking-widest" style={{ color: 'var(--muted)' }}>
-          PASTE MANIFEST
-        </span>
+    <div className="rounded text-xs" style={{ border: '1px solid var(--border)', background: '#0f0f0f' }}>
+      {/* Title bar */}
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>PASTE MANIFEST</span>
+          {detected && (
+            <span className="truncate text-xs px-2 py-0.5 tracking-wider" style={{ border: '1px solid var(--clean)', color: 'var(--clean)' }}>
+              DETECTED: {detected}
+            </span>
+          )}
+        </div>
         <select
           value={ecosystem}
           onChange={e => setEcosystem(e.target.value as EcosystemHint)}
-          className="text-xs tracking-wider bg-transparent outline-none cursor-pointer"
+          className="text-xs tracking-wider bg-transparent outline-none cursor-pointer ml-3 shrink-0"
           style={{ color: 'var(--fg)', border: '1px solid var(--border)', padding: '2px 6px' }}
         >
           {FORMAT_OPTIONS.map(o => (
-            <option key={o.value} value={o.value} style={{ background: '#0f0f0f' }}>
-              {o.label}
-            </option>
+            <option key={o.value} value={o.value} style={{ background: '#0f0f0f' }}>{o.label}</option>
           ))}
         </select>
       </div>
@@ -65,21 +72,12 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
         spellCheck={false}
       />
 
-      {/* Footer bar */}
-      <div
-        className="flex items-center justify-between px-4 py-3 border-t"
-        style={{ borderColor: 'var(--border)' }}
-      >
+      {/* Footer */}
+      <div className="flex items-center justify-between px-4 py-3 border-t" style={{ borderColor: 'var(--border)' }}>
         <label className="flex items-center gap-2 cursor-pointer select-none" style={{ color: 'var(--muted)' }}>
-          <input
-            type="checkbox"
-            checked={includeDevDeps}
-            onChange={e => setIncludeDevDeps(e.target.checked)}
-            className="accent-current"
-          />
+          <input type="checkbox" checked={includeDevDeps} onChange={e => setIncludeDevDeps(e.target.checked)} className="accent-current" />
           INCLUDE DEV DEPENDENCIES
         </label>
-
         <button
           onClick={handleScan}
           disabled={!content.trim() || loading}

@@ -35,7 +35,7 @@ export default function Hero() {
               THIS IS WHAT AI<br />GAVE YOU. →
             </h1>
             <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: 'var(--muted)' }}>
-              19.7% of AI-suggested packages don&apos;t exist.<br />
+              AI coding assistants hallucinate package names.<br />
               Attackers register the names. You install the malware.<br />
               Paste your manifest. Find out in 2 seconds.
             </p>

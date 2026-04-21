@@ -108,16 +108,16 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
         </div>
         <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{r.reason}</p>
         {r.meta.exists && (
-          <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs" style={{ color: 'var(--muted)' }}>
-            <span>FILE <span style={{ color: 'var(--fg)' }}>{fileVer}</span></span>
-            <span>
+          <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs">
+            <span style={{ color: '#888' }}>FILE <span style={{ color: 'var(--fg)' }}>{fileVer}</span></span>
+            <span style={{ color: '#888' }}>
               LATEST{' '}
               <span style={{ color: versionMismatch ? 'var(--warning)' : 'var(--fg)' }}>{latestVer}</span>
               {versionMismatch && <span style={{ color: 'var(--warning)' }}> ↑</span>}
             </span>
-            <span>DL <span style={{ color: 'var(--fg)' }}>{fmtDownloads(r.meta.monthlyDownloads)}</span></span>
-            <span>UPDATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.updatedAt)}</span></span>
-            <span>CREATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.createdAt)}</span></span>
+            <span style={{ color: '#888' }}>DL <span style={{ color: 'var(--fg)' }}>{fmtDownloads(r.meta.monthlyDownloads)}</span></span>
+            <span style={{ color: '#888' }}>UPDATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.updatedAt)}</span></span>
+            <span style={{ color: '#888' }}>CREATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.createdAt)}</span></span>
           </div>
         )}
       </div>
