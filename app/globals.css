@@ -22,6 +22,14 @@
   --font-mono: var(--font-mono);
 }
 
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   background: var(--bg);
   color: var(--fg);
