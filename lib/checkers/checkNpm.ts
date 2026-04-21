@@ -48,6 +48,7 @@ export async function checkNpm(pkg: ParsedPackage): Promise<ScanResult> {
 
   const time = registryData.time as Record<string, string> | undefined;
   const createdAt = time?.created;
+  const updatedAt = time?.modified;
 
   const latestVersion = (registryData['dist-tags'] as Record<string, string> | undefined)?.latest;
   const versions = registryData.versions as Record<string, unknown> | undefined;
@@ -65,7 +66,7 @@ export async function checkNpm(pkg: ParsedPackage): Promise<ScanResult> {
     }
   } catch { /* non-fatal */ }
 
-  const meta = { exists: true, createdAt, monthlyDownloads, hasPostInstall, postInstallScript: postInstall || undefined };
+  const meta = { exists: true, createdAt, updatedAt, latestVersion, monthlyDownloads, hasPostInstall, postInstallScript: postInstall || undefined };
 
   if (hasPostInstall) {
     return { package: pkg, flag: 'suspicious_script', severity: 'high', reason: `Post-install script contains suspicious command: ${postInstall.slice(0, 80)}`, registryUrl, meta };

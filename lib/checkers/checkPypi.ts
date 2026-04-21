@@ -37,9 +37,13 @@ export async function checkPypi(pkg: ParsedPackage): Promise<ScanResult> {
     };
   }
 
-  // Earliest upload date across all releases
+  const info = pypiData.info as Record<string, unknown> | undefined;
+  const latestVersion = info?.version as string | undefined;
+
+  // Earliest + latest upload dates across all releases
   const releases = pypiData.releases as Record<string, { upload_time?: string }[]> | undefined;
   let createdAt: string | undefined;
+  let updatedAt: string | undefined;
   if (releases) {
     const dates = Object.values(releases)
       .flat()
@@ -47,6 +51,7 @@ export async function checkPypi(pkg: ParsedPackage): Promise<ScanResult> {
       .filter((d): d is string => Boolean(d))
       .sort();
     createdAt = dates[0];
+    updatedAt = dates[dates.length - 1];
   }
 
   // Downloads via pypistats
@@ -59,7 +64,7 @@ export async function checkPypi(pkg: ParsedPackage): Promise<ScanResult> {
     }
   } catch { /* non-fatal */ }
 
-  const meta = { exists: true, createdAt, monthlyDownloads };
+  const meta = { exists: true, createdAt, updatedAt, latestVersion, monthlyDownloads };
 
   if (createdAt && isRecent(createdAt)) {
     const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24));

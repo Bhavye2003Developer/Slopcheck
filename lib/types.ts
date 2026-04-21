@@ -27,6 +27,8 @@ export interface ScanResult {
   meta: {
     exists: boolean;
     createdAt?: string;
+    updatedAt?: string;
+    latestVersion?: string;
     monthlyDownloads?: number;
     hasPostInstall?: boolean;
     postInstallScript?: string;
