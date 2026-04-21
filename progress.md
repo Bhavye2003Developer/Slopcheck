@@ -57,10 +57,10 @@ Ordered by dependency: foundation → logic → UI → integration.
 
 ## Phase 6 — Wire Up
 
-- [ ] Create `app/page.tsx` — compose all section components in order: `<Nav>`, `<Hero>` (with embedded scanner or scroll-to), `<ProblemSection>`, `<ChecksGrid>`, `<HowItWorks>`, `<Faq>`, `<Footer>`
-- [ ] Embed scanner in page — place `<ScanInput>` + `<ScanProgress>` + `<ResultsTable>` between Hero and Problem (or as a full-width section); wire `onScan` → `runScan` → state → render results
-- [ ] Add `id` anchors to each section so nav links scroll correctly
-- [ ] Add staggered fade-in animation to `ResultsTable` rows on results load
+- [x] Create `app/page.tsx` — compose all section components in order: `<Nav>`, `<Hero>` (with embedded scanner or scroll-to), `<ProblemSection>`, `<ChecksGrid>`, `<HowItWorks>`, `<Faq>`, `<Footer>`
+- [x] Embed scanner in page — place `<ScanInput>` + `<ScanProgress>` + `<ResultsTable>` between Hero and Problem (or as a full-width section); wire `onScan` → `runScan` → state → render results
+- [x] Add `id` anchors to each section so nav links scroll correctly
+- [x] Add staggered fade-in animation to `ResultsTable` rows on results load
 
 ---
 
