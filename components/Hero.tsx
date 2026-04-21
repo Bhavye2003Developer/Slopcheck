@@ -14,9 +14,9 @@ const badges = [
 export default function Hero() {
   return (
     <div>
-      <section className="relative pt-32 pb-0 px-6 scanline-overlay overflow-hidden">
+      <section className="relative pt-24 md:pt-32 pb-0 px-4 md:px-6 scanline-overlay overflow-hidden">
         {/* Badge row */}
-        <div className="max-w-7xl mx-auto mb-12 flex flex-wrap gap-6">
+        <div className="max-w-7xl mx-auto mb-8 md:mb-12 flex flex-wrap gap-4 md:gap-6">
           {badges.map(b => (
             <span key={b.label} className="text-xs" style={{ color: 'var(--muted)' }}>
               <span>{b.label}</span>{' '}
@@ -26,10 +26,10 @@ export default function Hero() {
         </div>
 
         {/* Headline + receipt */}
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-start pb-20">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 md:gap-16 items-start pb-12 md:pb-20">
           <div>
             <h1
-              className="text-6xl md:text-8xl font-black leading-none tracking-tight mb-8"
+              className="text-4xl md:text-8xl font-black leading-none tracking-tight mb-6 md:mb-8"
               style={{ color: 'var(--fg)' }}
             >
               THIS IS WHAT AI<br />GAVE YOU. →
