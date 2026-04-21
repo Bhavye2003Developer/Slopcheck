@@ -32,7 +32,7 @@ export default function Hero() {
               className="text-4xl md:text-8xl font-black leading-none mb-6 md:mb-8"
               style={{ color: 'var(--fg)' }}
             >
-              THIS IS WHAT AI<br />GAVE YOU. →
+              THIS IS WHAT AI<br />GAVE YOU.
             </h1>
             <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: 'var(--muted)' }}>
               AI coding assistants hallucinate package names.<br />
