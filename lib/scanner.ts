@@ -6,6 +6,8 @@ const BATCH_SIZE = 10;
 const BATCH_DELAY_MS = 100;
 
 const SEVERITY_ORDER: Record<Severity, number> = { critical: 0, high: 1, medium: 2, clean: 3, unsupported: 4 };
+// FlagType sort within same severity (outdated/low_adoption after real warnings)
+const FLAG_SUBORDER: Partial<Record<string, number>> = { low_adoption_latest: 0, outdated: 1 };
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -45,5 +47,11 @@ export async function runScan(packages: ParsedPackage[], callbacks: ScanCallback
     if (i + BATCH_SIZE < packages.length) await sleep(BATCH_DELAY_MS);
   }
 
-  return results.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
+  return results.sort((a, b) => {
+    const s = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
+    if (s !== 0) return s;
+    const fa = FLAG_SUBORDER[a.flag] ?? 99;
+    const fb = FLAG_SUBORDER[b.flag] ?? 99;
+    return fa - fb;
+  });
 }

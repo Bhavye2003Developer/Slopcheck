@@ -17,6 +17,8 @@ export type FlagType =
   | 'recently_registered'
   | 'low_downloads'
   | 'suspicious_script'
+  | 'outdated'
+  | 'low_adoption_latest'
   | 'clean'
   | 'unsupported';
 
@@ -27,6 +29,7 @@ export interface ParsedPackage {
   version: string | null;
   ecosystem: Ecosystem;
   raw: string;
+  isDev?: boolean;
 }
 
 export interface ScanResult {

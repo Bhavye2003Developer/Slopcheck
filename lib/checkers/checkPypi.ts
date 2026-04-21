@@ -2,6 +2,7 @@ import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
 
 const LOW_DOWNLOADS_THRESHOLD = 200;
 const RECENT_DAYS = 30;
+const LOW_ADOPTION_DAYS = 14;
 
 function isRecent(dateStr: string): boolean {
   return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24) < RECENT_DAYS;
@@ -56,5 +57,16 @@ export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promis
   if (monthlyDownloads !== undefined && monthlyDownloads < LOW_DOWNLOADS_THRESHOLD) {
     return { package: pkg, flag: 'low_downloads', severity: 'medium', reason: `Only ${monthlyDownloads.toLocaleString()} downloads last month (threshold: ${LOW_DOWNLOADS_THRESHOLD})`, registryUrl, meta };
   }
+
+  // Outdated version check — use latest release upload time as adoption proxy
+  if (latestVersion && pkg.version && pkg.version !== latestVersion && updatedAt) {
+    const latestAgeDays = Math.floor((Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24));
+    if (latestAgeDays < LOW_ADOPTION_DAYS) {
+      const dl = monthlyDownloads !== undefined ? ` · ${monthlyDownloads.toLocaleString()} total dl/mo` : '';
+      return { package: pkg, flag: 'low_adoption_latest', severity: 'medium', reason: `Latest v${latestVersion} is only ${latestAgeDays} days old — low adoption, your v${pkg.version} may be more stable${dl}`, registryUrl, meta };
+    }
+    return { package: pkg, flag: 'outdated', severity: 'medium', reason: `Using v${pkg.version}, latest is v${latestVersion} — consider upgrading`, registryUrl, meta };
+  }
+
   return { package: pkg, flag: 'clean', severity: 'clean', reason: 'Passes all checks', registryUrl, meta };
 }
