@@ -35,15 +35,15 @@ Ordered by dependency: foundation → logic → UI → integration.
 
 ## Phase 4 — Static UI Components
 
-- [ ] `components/Nav.tsx` — sticky, transparent→bordered on scroll, wordmark "SLOPCHECK." left, anchor links `[01]–[04]` + GitHub right
-- [ ] `components/Ticker.tsx` — CSS `marquee` / `animation: scroll` infinite loop; accepts `items: string[]`; hidden on mobile
-- [ ] `components/ScanReceipt.tsx` — static terminal-box card with hardcoded fake scan data (design doc hero mock)
-- [ ] `components/Hero.tsx` — status badge row, headline, subhead, CTA buttons, `<ScanReceipt />`, `<Ticker />` below
-- [ ] `components/ProblemSection.tsx` — `[01]` two-column layout; three large stat numbers (19.7%, ~20MIN, 30,000+) with labels
-- [ ] `components/ChecksGrid.tsx` — `[02]` responsive card grid; 4 check cards (nonexistent, newly registered, low downloads, post-install, legit)
-- [ ] `components/HowItWorks.tsx` — `[03]` three-step horizontal layout (PASTE / SCAN / REVIEW)
-- [ ] `components/Faq.tsx` — `[04]` accordion; 5 questions from design doc; open/close via local state
-- [ ] `components/Footer.tsx` — single footer block with tagline and GitHub link
+- [x] `components/Nav.tsx` — sticky, transparent→bordered on scroll, wordmark "SLOPCHECK." left, anchor links `[01]–[04]` + GitHub right
+- [x] `components/Ticker.tsx` — CSS `marquee` / `animation: scroll` infinite loop; accepts `items: string[]`; hidden on mobile
+- [x] `components/ScanReceipt.tsx` — static terminal-box card with hardcoded fake scan data (design doc hero mock)
+- [x] `components/Hero.tsx` — status badge row, headline, subhead, CTA buttons, `<ScanReceipt />`, `<Ticker />` below
+- [x] `components/ProblemSection.tsx` — `[01]` two-column layout; three large stat numbers (19.7%, ~20MIN, 30,000+) with labels
+- [x] `components/ChecksGrid.tsx` — `[02]` responsive card grid; 4 check cards (nonexistent, newly registered, low downloads, post-install, legit)
+- [x] `components/HowItWorks.tsx` — `[03]` three-step horizontal layout (PASTE / SCAN / REVIEW)
+- [x] `components/Faq.tsx` — `[04]` accordion; 5 questions from design doc; open/close via local state
+- [x] `components/Footer.tsx` — single footer block with tagline and GitHub link
 
 ---
 
@@ -72,4 +72,3 @@ Ordered by dependency: foundation → logic → UI → integration.
 - [ ] Handle error states in checkers: registry timeout, rate-limit 429, malformed response
 - [ ] Update `next.config.ts` with `output: 'export'` for Vercel static deploy
 - [ ] Replace placeholder metadata in `layout.tsx` (OG tags, description, favicon)
-- [ ] Deploy to Vercel; verify all client-side fetches work from production origin (CORS check)
