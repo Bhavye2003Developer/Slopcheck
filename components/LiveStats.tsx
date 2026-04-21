@@ -75,68 +75,68 @@ async function fetchPypiDownloads(): Promise<number | null> {
 }
 
 export default function LiveStats() {
-  const [stats, setStats] = useState<(Stat | null)[]>([null, null, null]);
+  const [stats, setStats] = useState<Stat[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     Promise.all([
-      fetchNpmPackageCount(),
-      fetchPypiDownloads(),
       fetchNpmMonthlyDownloads(),
-    ]).then(([npmPkgs, pypiDl, npmDl]) => {
-      setStats([
-        npmDl !== null ? {
-          value: fmt(npmDl),
-          label: 'npm CLI downloads\nlast 30 days',
-          source: 'api.npmjs.org',
-          sourceUrl: 'https://api.npmjs.org',
-        } : null,
-        pypiDl !== null ? {
-          value: fmt(pypiDl),
-          label: 'PyPI downloads (top 10 pkgs)\nlast 30 days',
-          source: 'pypistats.org',
-          sourceUrl: 'https://pypistats.org',
-        } : null,
-        npmPkgs !== null ? {
-          value: fmt(npmPkgs),
-          label: 'npm downloads\n(react + 14 core pkgs)',
-          source: 'api.npmjs.org',
-          sourceUrl: 'https://api.npmjs.org',
-        } : null,
-      ]);
+      fetchPypiDownloads(),
+      fetchNpmPackageCount(),
+    ]).then(([npmDl, pypiDl, npmPkgs]) => {
+      const resolved: Stat[] = [];
+      if (npmDl !== null) resolved.push({
+        value: fmt(npmDl),
+        label: 'npm CLI downloads\nlast 30 days',
+        source: 'api.npmjs.org',
+        sourceUrl: 'https://api.npmjs.org',
+      });
+      if (pypiDl !== null) resolved.push({
+        value: fmt(pypiDl),
+        label: 'PyPI downloads (top 10 pkgs)\nlast 30 days',
+        source: 'pypistats.org',
+        sourceUrl: 'https://pypistats.org',
+      });
+      if (npmPkgs !== null) resolved.push({
+        value: fmt(npmPkgs),
+        label: 'npm downloads\n(15 core packages/mo)',
+        source: 'api.npmjs.org',
+        sourceUrl: 'https://api.npmjs.org',
+      });
+      setStats(resolved);
       setLoaded(true);
     });
   }, []);
 
+  if (loaded && stats.length === 0) return null;
+
+  const cols = loaded ? Math.min(stats.length, 3) : 3;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ background: 'var(--border)' }}>
-      {stats.map((s, i) => (
+    <div className={`grid grid-cols-1 md:grid-cols-${cols} gap-px`} style={{ background: 'var(--border)' }}>
+      {loaded ? stats.map((s, i) => (
         <div key={i} className="px-6 md:px-8 py-10" style={{ background: 'var(--bg)' }}>
-          {s && loaded ? (
-            <>
-              <div className="text-4xl md:text-5xl font-bold mb-3 tracking-tight" style={{ color: 'var(--warning)' }}>
-                {s.value}
-              </div>
-              <div className="text-xs leading-relaxed whitespace-pre-line mb-3" style={{ color: '#aaa' }}>
-                {s.label}
-              </div>
-              <a
-                href={s.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs transition-colors"
-                style={{ color: '#777' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--muted)')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#777')}
-              >
-                SOURCE: {s.source} ↗
-              </a>
-            </>
-          ) : (
-            <div className="text-4xl font-bold mb-3 tracking-tight animate-pulse" style={{ color: '#333' }}>
-              ——
-            </div>
-          )}
+          <div className="text-4xl md:text-5xl font-bold mb-3 tracking-tight" style={{ color: 'var(--warning)' }}>
+            {s.value}
+          </div>
+          <div className="text-xs leading-relaxed whitespace-pre-line mb-3" style={{ color: '#aaa' }}>
+            {s.label}
+          </div>
+          <a
+            href={s.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs transition-colors"
+            style={{ color: '#777' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--muted)')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#777')}
+          >
+            SOURCE: {s.source} ↗
+          </a>
+        </div>
+      )) : [0, 1, 2].map(i => (
+        <div key={i} className="px-6 md:px-8 py-10" style={{ background: 'var(--bg)' }}>
+          <div className="text-4xl font-bold mb-3 tracking-tight" style={{ color: '#222' }}>——</div>
         </div>
       ))}
     </div>
