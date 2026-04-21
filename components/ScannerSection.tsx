@@ -6,6 +6,7 @@ import ScanProgress from './scanner/ScanProgress';
 import ResultsTable from './scanner/ResultsTable';
 import { detectAndParse } from '@/lib/parsers';
 import { runScan } from '@/lib/scanner';
+import { getCached, setCached } from '@/lib/cache';
 import type { ScanResult } from '@/lib/types';
 import type { EcosystemHint } from '@/lib/parsers';
 
@@ -14,14 +15,24 @@ export default function ScannerSection() {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [results, setResults] = useState<ScanResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
 
   const handleScan = useCallback(async (
     content: string,
     ecosystem: EcosystemHint,
     includeDevDeps: boolean
   ) => {
-    setLoading(true);
     setError(null);
+    setFromCache(false);
+
+    const cached = getCached(content, ecosystem, includeDevDeps);
+    if (cached) {
+      setResults(cached);
+      setFromCache(true);
+      return;
+    }
+
+    setLoading(true);
     setResults(null);
     setProgress(null);
 
@@ -35,6 +46,7 @@ export default function ScannerSection() {
       const scanResults = await runScan(packages, (done, total) => {
         setProgress({ done, total });
       });
+      setCached(content, ecosystem, includeDevDeps, scanResults);
       setResults(scanResults);
     } catch {
       setError('Scan failed. Check your connection and try again.');
@@ -69,7 +81,7 @@ export default function ScannerSection() {
           </p>
         )}
 
-        {results && <ResultsTable results={results} />}
+        {results && <ResultsTable results={results} fromCache={fromCache} />}
       </div>
     </section>
   );
