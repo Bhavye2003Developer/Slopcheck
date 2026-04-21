@@ -8,7 +8,15 @@ import { parseCargoToml } from './parseCargoToml';
 
 export type EcosystemHint = Ecosystem | 'auto';
 
-function detectEcosystem(content: string): Ecosystem {
+export const ECOSYSTEM_META: Record<Ecosystem, { file: string; label: string }> = {
+  npm:      { file: 'package.json',                   label: 'Node.js / npm' },
+  pypi:     { file: 'requirements.txt / pyproject.toml', label: 'Python / PyPI' },
+  rubygems: { file: 'Gemfile',                         label: 'Ruby / RubyGems' },
+  go:       { file: 'go.mod',                          label: 'Go modules' },
+  cargo:    { file: 'Cargo.toml',                      label: 'Rust / crates.io' },
+};
+
+export function detectEcosystem(content: string): Ecosystem {
   const trimmed = content.trim();
   if (trimmed.startsWith('{') && trimmed.includes('"dependencies"')) return 'npm';
   if (trimmed.includes('[project]') || trimmed.includes('[tool.poetry]')) return 'pypi';
