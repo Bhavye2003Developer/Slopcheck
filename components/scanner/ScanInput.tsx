@@ -84,7 +84,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
           className="px-6 py-2 text-xs font-bold tracking-widest transition-opacity disabled:opacity-30"
           style={{ background: 'var(--fg)', color: 'var(--bg)' }}
         >
-          {loading ? 'SCANNING...' : 'SCAN ->'}
+          {loading ? 'SCANNING...' : 'SCAN →'}
         </button>
       </div>
     </div>
