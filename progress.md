@@ -14,13 +14,13 @@ Ordered by dependency: foundation → logic → UI → integration.
 
 ## Phase 2 — Parsers (`lib/parsers/`)
 
-- [ ] `parsePackageJson.ts` — parse `dependencies` (and optionally `devDependencies`) into `ParsedPackage[]`; strip `^~>=` from versions
-- [ ] `parseRequirementsTxt.ts` — skip `#` comments and blank lines; strip `==`, `>=`, `~=`, `!=` pins; handle extras like `flask[async]`
-- [ ] `parsePyprojectToml.ts` — extract `[project].dependencies` and `[tool.poetry.dependencies]` arrays
-- [ ] `parseGemfile.ts` — extract `gem 'name'` lines, skip `source`/`ruby` lines (stub: no registry check in v1)
-- [ ] `parseGoMod.ts` — extract `require` block lines (stub: no registry check in v1)
-- [ ] `parseCargoToml.ts` — extract `[dependencies]` keys (stub: no registry check in v1)
-- [ ] `lib/parsers/index.ts` — auto-detect ecosystem from content heuristics; export `detectAndParse(content, hint?) → ParsedPackage[]`
+- [x] `parsePackageJson.ts` — parse `dependencies` (and optionally `devDependencies`) into `ParsedPackage[]`; strip `^~>=` from versions
+- [x] `parseRequirementsTxt.ts` — skip `#` comments and blank lines; strip `==`, `>=`, `~=`, `!=` pins; handle extras like `flask[async]`
+- [x] `parsePyprojectToml.ts` — extract `[project].dependencies` and `[tool.poetry.dependencies]` arrays
+- [x] `parseGemfile.ts` — extract `gem 'name'` lines, skip `source`/`ruby` lines (stub: no registry check in v1)
+- [x] `parseGoMod.ts` — extract `require` block lines (stub: no registry check in v1)
+- [x] `parseCargoToml.ts` — extract `[dependencies]` keys (stub: no registry check in v1)
+- [x] `lib/parsers/index.ts` — auto-detect ecosystem from content heuristics; export `detectAndParse(content, hint?) → ParsedPackage[]`
 
 ---
 
