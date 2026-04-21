@@ -176,18 +176,18 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
             <button
               onClick={exportJson}
               className="text-xs tracking-widest px-3 py-2 transition-colors"
-              style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+              style={{ border: '1px solid var(--border)', color: 'var(--fg)' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--fg)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             >
               JSON
             </button>
             <button
               onClick={exportText}
               className="text-xs tracking-widest px-3 py-2 transition-colors"
-              style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+              style={{ border: '1px solid var(--border)', color: 'var(--fg)' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--fg)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             >
               TXT
             </button>

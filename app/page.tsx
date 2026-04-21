@@ -6,6 +6,7 @@ import ChecksGrid from '@/components/ChecksGrid';
 import HowItWorks from '@/components/HowItWorks';
 import Faq from '@/components/Faq';
 import Footer from '@/components/Footer';
+import AnimatedSection from '@/components/AnimatedSection';
 
 export default function Home() {
   return (
@@ -13,11 +14,11 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
-        <ScannerSection />
-        <ProblemSection />
-        <ChecksGrid />
-        <HowItWorks />
-        <Faq />
+        <AnimatedSection><ScannerSection /></AnimatedSection>
+        <AnimatedSection><ProblemSection /></AnimatedSection>
+        <AnimatedSection><ChecksGrid /></AnimatedSection>
+        <AnimatedSection><HowItWorks /></AnimatedSection>
+        <AnimatedSection><Faq /></AnimatedSection>
       </main>
       <Footer />
     </>

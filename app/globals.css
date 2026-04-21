@@ -6,7 +6,7 @@
   --critical: #ff4444;
   --warning: #ffaa00;
   --clean: #22ff88;
-  --muted: #555555;
+  --muted: #999999;
   --border: #222222;
   --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
 }
@@ -28,6 +28,10 @@
 
 *::-webkit-scrollbar {
   display: none;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -77,4 +81,23 @@ body {
 
 .animate-ticker {
   animation: ticker-scroll 30s linear infinite;
+}
+
+@keyframes section-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-section {
+  animation: section-fade-in 0.5s ease forwards;
+}
+
+.animate-section-hidden {
+  opacity: 0;
 }

@@ -46,8 +46,8 @@ export default function ChecksGrid() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: 'var(--border)' }}>
-          {checks.map(c => (
-            <div key={c.name} className="p-8 flex flex-col gap-3" style={{ background: 'var(--bg)' }}>
+          {checks.map((c, i) => (
+            <div key={c.name} className={`p-8 flex flex-col gap-3${i === checks.length - 1 && checks.length % 3 !== 0 ? ' lg:col-span-2' : ''}`} style={{ background: 'var(--bg)' }}>
               <span className="text-2xl">{c.icon}</span>
               <span className="text-xs font-bold tracking-widest" style={{ color: c.color }}>{c.name}</span>
               <span className="text-sm" style={{ color: 'var(--fg)' }}>{c.desc}</span>
