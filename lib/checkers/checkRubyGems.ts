@@ -1,35 +1,28 @@
 import type { ParsedPackage, ScanResult, NetworkLogger } from '../types';
 import { API } from '../api';
+import { fetchWithTimeout, TEN_MIN } from '../fetch';
 
 const LOW_DOWNLOADS_THRESHOLD = 1000;
 const RECENT_DAYS = 30;
 const LOW_ADOPTION_DAYS = 14;
 
+type RubyGemsData = Record<string, unknown>;
+
 function isRecent(dateStr: string): boolean {
   return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24) < RECENT_DAYS;
-}
-
-async function trackedFetch(url: string, pkg: string, label: string, log?: NetworkLogger): Promise<Response | null> {
-  const t = Date.now();
-  try {
-    const res = await fetch(url);
-    log?.({ pkg, label, url, status: res.status, ok: res.ok, ms: Date.now() - t });
-    return res;
-  } catch {
-    log?.({ pkg, label, url, ok: false, ms: Date.now() - t });
-    return null;
-  }
 }
 
 export async function checkRubyGems(pkg: ParsedPackage, log?: NetworkLogger): Promise<ScanResult> {
   const registryUrl = API.rubygems.page(pkg.name);
 
-  const res = await trackedFetch(API.rubygems.registry(pkg.name), pkg.name, 'RubyGems registry', log);
-  if (!res || !res.ok) {
+  const data = await fetchWithTimeout<RubyGemsData>(API.rubygems.registry(pkg.name), {
+    timeout: 4000, ttl: TEN_MIN, log, logPkg: pkg.name, logLabel: 'RubyGems registry',
+  });
+
+  if (!data) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Gem not found on RubyGems', registryUrl, meta: { exists: false } };
   }
 
-  const data = await res.json() as Record<string, unknown>;
   const latestVersion = data.version as string | undefined;
   const createdAt = data.created_at as string | undefined;
   const updatedAt = data.version_created_at as string | undefined;
