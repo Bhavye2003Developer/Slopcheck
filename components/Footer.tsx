@@ -21,7 +21,7 @@ export default function Footer() {
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
           >
-            GITHUB {'->'}
+            GITHUB →
           </a>
         </div>
       </div>
