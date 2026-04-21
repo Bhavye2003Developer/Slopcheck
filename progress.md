@@ -26,10 +26,10 @@ Ordered by dependency: foundation → logic → UI → integration.
 
 ## Phase 3 — Checkers (`lib/checkers/`)
 
-- [ ] `checkNpm.ts` — fetch `registry.npmjs.org/{pkg}` + downloads API; return `ScanResult` with exists/createdAt/monthlyDownloads/postInstall flags
-- [ ] `checkPypi.ts` — fetch `pypi.org/pypi/{pkg}/json` + pypistats downloads; return `ScanResult` with same shape
-- [ ] `lib/checkers/index.ts` — `checkPackage(pkg: ParsedPackage): Promise<ScanResult>`; route by ecosystem; return "coming soon" result for rubygems/go/cargo
-- [ ] `lib/scanner.ts` — `runScan(packages: ParsedPackage[], onProgress): Promise<ScanResult[]>`; batch 10 at a time with 100ms delay; call `onProgress(done, total)` per batch; sort results by severity on completion
+- [x] `checkNpm.ts` — fetch `registry.npmjs.org/{pkg}` + downloads API; return `ScanResult` with exists/createdAt/monthlyDownloads/postInstall flags
+- [x] `checkPypi.ts` — fetch `pypi.org/pypi/{pkg}/json` + pypistats downloads; return `ScanResult` with same shape
+- [x] `lib/checkers/index.ts` — `checkPackage(pkg: ParsedPackage): Promise<ScanResult>`; route by ecosystem; return "coming soon" result for rubygems/go/cargo
+- [x] `lib/scanner.ts` — `runScan(packages: ParsedPackage[], onProgress): Promise<ScanResult[]>`; batch 10 at a time with 100ms delay; call `onProgress(done, total)` per batch; sort results by severity on completion
 
 ---
 
