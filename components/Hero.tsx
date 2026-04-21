@@ -26,13 +26,13 @@ export default function Hero() {
         </div>
 
         {/* Headline + receipt */}
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 md:gap-16 items-start pb-12 md:pb-20">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10 md:gap-16 items-start pb-12 md:pb-20">
           <div>
             <h1
               className="text-4xl md:text-8xl font-black leading-none mb-6 md:mb-8"
               style={{ color: 'var(--fg)' }}
             >
-              THIS IS WHAT AI<br />GAVE YOU. →
+              THIS IS WHAT AI GAVE YOU.
             </h1>
             <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: 'var(--muted)' }}>
               AI coding assistants hallucinate package names.<br />
