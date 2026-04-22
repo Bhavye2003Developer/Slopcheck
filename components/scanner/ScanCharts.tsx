@@ -11,17 +11,21 @@ export type ChartFilter =
   | { type: 'age';      bucket: number }
   | null;
 
+function ageBucket(createdAt?: string): number {
+  if (!createdAt) return 3;
+  const d = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000);
+  if (d < 30)  return 0;
+  if (d < 180) return 1;
+  if (d < 730) return 2;
+  return 3;
+}
+
 export function matchesFilter(r: ScanResult, f: ChartFilter): boolean {
   if (!f) return true;
   if (f.type === 'severity') return r.severity === f.value;
   if (f.type === 'cve') return r.cveSeverity === f.value;
   if (f.type === 'age') {
-    if (!r.meta.createdAt) return false;
-    const d = Math.floor((Date.now() - new Date(r.meta.createdAt).getTime()) / 86_400_000);
-    if (f.bucket === 0) return d < 30;
-    if (f.bucket === 1) return d >= 30 && d < 180;
-    if (f.bucket === 2) return d >= 180 && d < 730;
-    return d >= 730;
+    return ageBucket(r.meta.createdAt) === (f as { type: 'age'; bucket: number }).bucket;
   }
   return true;
 }
@@ -96,11 +100,37 @@ function Ring({
   }
 
   return (
-    <>
-      {/* ring svg — responsive width, capped */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
+      {/* legend LEFT — grows, never pushes ring */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {arcs.map((a, i) => {
+          const isActive = activeVal === a.filterVal;
+          const dimmed   = activeVal !== null && !isActive;
+          return (
+            <button
+              key={i}
+              onClick={() => toggle(a.filterVal)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                width: '100%', padding: '4px 6px', marginBottom: 3,
+                background: isActive ? '#141414' : 'transparent',
+                border: `1px solid ${isActive ? a.color + '55' : 'transparent'}`,
+                borderRadius: 3, cursor: 'pointer',
+                opacity: dimmed ? 0.22 : 1,
+              }}
+            >
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: a.color, flexShrink: 0, display: 'inline-block' }} />
+              <span style={{ fontSize: 11, color: '#777', letterSpacing: '0.05em', flexShrink: 0, whiteSpace: 'nowrap' }}>{a.label}</span>
+              <span style={{ fontSize: 11, color: a.color, fontWeight: 700 }}>{a.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ring RIGHT — fixed proportional size, never moves */}
       <svg
         viewBox={`0 0 ${SZ} ${SZ}`}
-        style={{ width: 'min(100%, 200px)', height: 'auto', flexShrink: 0 }}
+        style={{ width: 'clamp(110px, 42%, 170px)', height: 'auto', flexShrink: 0 }}
       >
         <circle cx={cx} cy={cy} r={R} fill="none" stroke="#151515" strokeWidth={SW} />
         {arcs.map((a, i) => {
@@ -111,7 +141,7 @@ function Ring({
               strokeDasharray={`${a.dash} ${C - a.dash}`}
               strokeDashoffset={a.off}
               strokeLinecap="butt"
-              opacity={dimmed ? 0.15 : 1}
+              opacity={dimmed ? 0.13 : 1}
               style={{ cursor: 'pointer' }}
               onClick={() => toggle(a.filterVal)}
             />
@@ -120,38 +150,7 @@ function Ring({
         <text x={cx} y={cy - 6}  textAnchor="middle" fontSize={22} fontWeight="bold" fill="#e0e0e0">{total}</text>
         <text x={cx} y={cy + 14} textAnchor="middle" fontSize={9}  fill="#444" letterSpacing="2">{center}</text>
       </svg>
-
-      {/* legend — compact, clickable */}
-      <div style={{ width: '100%', maxWidth: 200 }}>
-        {arcs.map((a, i) => {
-          const isActive = activeVal === a.filterVal;
-          const dimmed   = activeVal !== null && !isActive;
-          return (
-            <button
-              key={i}
-              onClick={() => toggle(a.filterVal)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                width: '100%',
-                padding: '4px 6px',
-                marginBottom: 2,
-                background: isActive ? '#141414' : 'transparent',
-                border: `1px solid ${isActive ? a.color + '44' : 'transparent'}`,
-                borderRadius: 3,
-                cursor: 'pointer',
-                opacity: dimmed ? 0.25 : 1,
-              }}
-            >
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: a.color, flexShrink: 0, display: 'inline-block' }} />
-              <span style={{ fontSize: 11, color: '#777', letterSpacing: '0.05em', flexShrink: 0 }}>{a.label}</span>
-              <span style={{ fontSize: 11, color: a.color, fontWeight: 700 }}>{a.count}</span>
-            </button>
-          );
-        })}
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -220,17 +219,10 @@ const AGE_BUCKETS = [
   { label: '2yr+',    color: '#22ff88' },
 ];
 
-function getAgeBucket(createdAt: string): number {
-  const d = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000);
-  if (d < 30)  return 0;
-  if (d < 180) return 1;
-  if (d < 730) return 2;
-  return 3;
-}
 
 function AgeHistogram({ results, active, onFilter }: { results: ScanResult[]; active: ChartFilter; onFilter: (f: ChartFilter) => void }) {
-  const pkgs   = results.filter(r => r.meta.exists && r.meta.createdAt);
-  const counts = AGE_BUCKETS.map((_, i) => pkgs.filter(r => getAgeBucket(r.meta.createdAt!) === i).length);
+  const pkgs   = results.filter(r => r.meta.exists);
+  const counts = AGE_BUCKETS.map((_, i) => pkgs.filter(r => ageBucket(r.meta.createdAt) === i).length);
   const maxCnt = Math.max(...counts, 1);
   const activeBucket = active?.type === 'age' ? (active as { type: 'age'; bucket: number }).bucket : null;
 
