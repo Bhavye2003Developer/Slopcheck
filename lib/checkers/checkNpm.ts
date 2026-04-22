@@ -34,7 +34,7 @@ export async function checkNpm(pkg: ParsedPackage, log?: NetworkLogger): Promise
   const registryData = registryResult.status === 'fulfilled' ? registryResult.value : null;
   const dlData = downloadsResult.status === 'fulfilled' ? downloadsResult.value : null;
 
-  if (!registryData) {
+  if (!registryData || !registryData.name) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Package not found on npm registry', registryUrl, meta: { exists: false } };
   }
 

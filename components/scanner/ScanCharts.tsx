@@ -351,10 +351,10 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
       title="RISK SCATTER  ·  age vs downloads  ·  click dot to isolate package  ·  ring = has CVEs"
       onClear={(active?.type === 'severity' || active?.type === 'package') ? () => onFilter(null) : undefined}
     >
-      <div style={{ position: 'relative', width: '100%' }}>
+      <div style={{ position: 'relative', width: '100%', overflowX: 'auto' }}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}
+          style={{ width: 'max(100%, 600px)', height: 'auto', display: 'block', overflow: 'visible' }}
           onMouseLeave={() => setTip(null)}
         >
           {/* danger zone */}
