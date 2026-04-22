@@ -80,6 +80,11 @@ function VulnPill({ result }: { result: ScanResult }) {
   );
 }
 
+function fmtDateShort(iso?: string): string {
+  if (!iso) return '-';
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 function CvePanel({ cves }: { cves: CVEEntry[] }) {
   if (cves.length === 0) return null;
   return (
@@ -94,6 +99,9 @@ function CvePanel({ cves }: { cves: CVEEntry[] }) {
               <span style={{ color }}>{cve.severity}</span>
               {cve.cvss !== null && (
                 <span style={{ color: 'var(--muted)' }}>CVSS {cve.cvss.toFixed(1)}</span>
+              )}
+              {cve.reportedAt && (
+                <span style={{ color: 'var(--muted)' }}>Reported {fmtDateShort(cve.reportedAt)}</span>
               )}
               {cve.fixedIn && (
                 <span style={{ color: 'var(--clean)' }}>Fixed in {cve.fixedIn}</span>
@@ -305,7 +313,7 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
       </div>
 
       {/* Table */}
-      <div style={{ border: '1px solid var(--border)' }}>
+      <div style={{ border: '1px solid var(--border)', maxHeight: '600px', overflowY: 'auto' }}>
         {renderGroup(deps, 'DEPENDENCIES', 0)}
         {devDeps.length > 0 && renderGroup(devDeps, 'DEV DEPENDENCIES', deps.length)}
       </div>

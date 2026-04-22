@@ -36,6 +36,7 @@ interface OsvDatabaseSpecific {
 
 interface OsvVuln {
   id: string;
+  published?: string;
   summary?: string;
   severity?: OsvSeverity[];
   affected?: OsvAffected[];
@@ -122,6 +123,7 @@ export async function checkOsv(name: string, ecosystem: Ecosystem): Promise<CVEE
     cvss: extractCvss(v),
     summary: v.summary ?? '',
     fixedIn: extractFixed(v.affected),
+    reportedAt: v.published,
   }));
 
   return entries.sort((a, b) => (SEV_ORDER[a.severity] ?? 4) - (SEV_ORDER[b.severity] ?? 4));

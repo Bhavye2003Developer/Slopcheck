@@ -41,6 +41,7 @@ export interface CVEEntry {
   cvss: number | null;
   summary: string;
   fixedIn?: string;
+  reportedAt?: string;
 }
 
 export interface ScanResult {
