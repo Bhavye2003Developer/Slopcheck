@@ -8,6 +8,13 @@ const rows = [
   { icon: '✅', severity: 'CLEAN',    name: 'sqlalchemy',         reason: '+ 8 more...',   color: 'var(--clean)'    },
 ];
 
+const VULN_ROW = {
+  label: 'VULN SCAN',
+  bar: '██████░░░░',
+  summary: '3 CVEs found (1 CRITICAL)',
+  barColor: '#ff4444',
+};
+
 export default function ScanReceipt() {
   return (
     <div
@@ -36,6 +43,11 @@ export default function ScanReceipt() {
             <span className="opacity-70 text-right">{row.reason}</span>
           </div>
         ))}
+        <div className="px-4 py-2 flex items-center gap-3 font-mono">
+          <span className="w-20 shrink-0 opacity-70 text-xs tracking-widest" style={{ color: 'var(--muted)' }}>{VULN_ROW.label}</span>
+          <span className="shrink-0 text-xs" style={{ color: VULN_ROW.barColor }}>{VULN_ROW.bar}</span>
+          <span className="flex-1 text-xs" style={{ color: 'var(--muted)' }}>{VULN_ROW.summary}</span>
+        </div>
       </div>
     </div>
   );

@@ -49,6 +49,15 @@ export default function ScannerSection() {
         onNetworkEvent: event => {
           setNetworkEvents(prev => [...prev, event]);
         },
+        onOsvResult: updated => {
+          setResults(prev =>
+            prev.map(r =>
+              r.package.name === updated.package.name && r.package.ecosystem === updated.package.ecosystem
+                ? updated
+                : r
+            )
+          );
+        },
       });
     } catch {
       setError('Scan failed. Check your connection and try again.');

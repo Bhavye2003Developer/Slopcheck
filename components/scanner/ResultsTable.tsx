@@ -1,6 +1,7 @@
 'use client';
 
-import type { ScanResult, Severity } from '@/lib/types';
+import { useState } from 'react';
+import type { ScanResult, Severity, CVEEntry } from '@/lib/types';
 
 import type { FlagType } from '@/lib/types';
 
@@ -13,6 +14,9 @@ const FLAG_LABEL: Partial<Record<FlagType, string>> = {
   low_adoption_latest: '⚠️  LOW ADOPT',
   clean: '✅ CLEAN',
   unsupported: 'N/A',
+  has_cve_critical: '❌ NOT FOUND',
+  has_cve_high: '⚠️  NEW PKG',
+  has_cve_medium: '⚠️  LOW DL',
 };
 
 const SEVERITY_LABEL: Record<Severity, string> = {
@@ -31,17 +35,78 @@ const SEVERITY_COLOR: Record<Severity, string> = {
   unsupported: 'var(--muted)',
 };
 
+type CveSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'CLEAN';
+
+const VULN_COLOR: Record<CveSeverity | 'PENDING' | 'UNKNOWN', string> = {
+  CRITICAL: '#ff4444',
+  HIGH: '#ff7700',
+  MEDIUM: '#ffaa00',
+  LOW: '#ffaa00',
+  CLEAN: '#22ff88',
+  PENDING: '#555',
+  UNKNOWN: '#555',
+};
+
 interface ResultsTableProps {
   results: ScanResult[];
   scanning?: boolean;
 }
 
 function buildSummary(results: ScanResult[]) {
-  return {
-    critical: results.filter(r => r.severity === 'critical').length,
-    warnings: results.filter(r => r.severity === 'high' || r.severity === 'medium').length,
-    clean: results.filter(r => r.severity === 'clean').length,
-  };
+  const critical = results.filter(r => r.severity === 'critical').length;
+  const warnings = results.filter(r => r.severity === 'high' || r.severity === 'medium').length;
+  const clean = results.filter(r => r.severity === 'clean').length;
+  const cveCritical = results.filter(r => r.cveSeverity === 'CRITICAL').length;
+  const cveHigh = results.filter(r => r.cveSeverity === 'HIGH').length;
+  const totalCves = results.reduce((sum, r) => sum + (r.cves?.length ?? 0), 0);
+  const cveClean = results.filter(r => r.cveSeverity === 'CLEAN').length;
+  return { critical, warnings, clean, cveCritical, cveHigh, totalCves, cveClean };
+}
+
+function VulnPill({ result }: { result: ScanResult }) {
+  if (result.cveSeverity === undefined) {
+    return (
+      <span className="text-xs px-2 py-0.5 font-mono tracking-widest" style={{ color: '#555', border: '1px solid #333' }}>
+        —
+      </span>
+    );
+  }
+  const sev = result.cveSeverity;
+  const color = VULN_COLOR[sev] ?? '#555';
+  return (
+    <span className="text-xs px-2 py-0.5 font-mono tracking-widest" style={{ color, border: `1px solid ${color}` }}>
+      {sev}
+    </span>
+  );
+}
+
+function CvePanel({ cves }: { cves: CVEEntry[] }) {
+  if (cves.length === 0) return null;
+  return (
+    <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+      <p className="text-xs tracking-widest mb-2" style={{ color: 'var(--muted)' }}>CVEs</p>
+      <div className="flex flex-col gap-1">
+        {cves.map(cve => {
+          const color = VULN_COLOR[cve.severity] ?? '#555';
+          return (
+            <div key={cve.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-mono">
+              <span style={{ color: 'var(--fg)' }}>{cve.id}</span>
+              <span style={{ color }}>{cve.severity}</span>
+              {cve.cvss !== null && (
+                <span style={{ color: 'var(--muted)' }}>CVSS {cve.cvss.toFixed(1)}</span>
+              )}
+              {cve.fixedIn && (
+                <span style={{ color: 'var(--clean)' }}>Fixed in {cve.fixedIn}</span>
+              )}
+              {cve.summary && (
+                <span className="w-full mt-0.5" style={{ color: '#666' }}>{cve.summary}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function fmtDate(iso?: string): string {
@@ -67,17 +132,32 @@ function downloadFile(content: string, filename: string, mime: string) {
 }
 
 export default function ResultsTable({ results, scanning = false }: ResultsTableProps) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
   if (results.length === 0) return null;
 
-  const { critical, warnings, clean } = buildSummary(results);
+  const { critical, warnings, clean, cveCritical, cveHigh, totalCves, cveClean } = buildSummary(results);
   const deps = results.filter(r => !r.package.isDev);
   const devDeps = results.filter(r => r.package.isDev);
+  const osvDone = results.some(r => r.cveSeverity !== undefined);
+
+  function toggleExpanded(key: string) {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   function renderRow(r: ScanResult, i: number, globalIndex: number) {
     const fileVer = r.package.version ?? '-';
     const latestVer = r.meta.latestVersion ?? '-';
     const versionMismatch = r.meta.latestVersion && r.package.version && r.package.version !== r.meta.latestVersion;
     const flagLabel = FLAG_LABEL[r.flag] ?? SEVERITY_LABEL[r.severity];
+    const rowKey = `${r.package.ecosystem}:${r.package.name}`;
+    const isExpanded = expanded.has(rowKey);
+    const hasCves = (r.cves?.length ?? 0) > 0;
 
     return (
       <div
@@ -97,14 +177,17 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
               )}
             </span>
           </div>
-          {r.registryUrl && (
-            <a href={r.registryUrl} target="_blank" rel="noopener noreferrer"
-              className="text-xs shrink-0 transition-colors" style={{ color: 'var(--muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
-              VIEW ↗
-            </a>
-          )}
+          <div className="flex items-center gap-3 shrink-0">
+            <VulnPill result={r} />
+            {r.registryUrl && (
+              <a href={r.registryUrl} target="_blank" rel="noopener noreferrer"
+                className="text-xs transition-colors" style={{ color: 'var(--muted)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+                VIEW ↗
+              </a>
+            )}
+          </div>
         </div>
         <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{r.reason}</p>
         {r.meta.exists && (
@@ -120,6 +203,18 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
             <span style={{ color: '#888' }}>CREATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.createdAt)}</span></span>
           </div>
         )}
+        {hasCves && (
+          <button
+            onClick={() => toggleExpanded(rowKey)}
+            className="mt-2 text-xs tracking-widest transition-colors"
+            style={{ color: 'var(--muted)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+          >
+            {isExpanded ? '▲ HIDE CVEs' : `▼ SHOW ${r.cves!.length} CVE${r.cves!.length !== 1 ? 's' : ''}`}
+          </button>
+        )}
+        {isExpanded && hasCves && <CvePanel cves={r.cves!} />}
       </div>
     );
   }
@@ -160,11 +255,25 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
       {/* Summary bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-xs tracking-widest flex flex-wrap items-center gap-2" style={{ color: 'var(--muted)' }}>
-          <span style={{ color: 'var(--critical)' }}>{critical} critical</span>
+          {!scanning && <span style={{ color: 'var(--fg)' }}>SCAN COMPLETE</span>}
           <span>·</span>
-          <span style={{ color: 'var(--warning)' }}>{warnings} warnings</span>
+          <span style={{ color: 'var(--critical)' }}>{critical} CRITICAL</span>
           <span>·</span>
-          <span style={{ color: 'var(--clean)' }}>{clean} clean</span>
+          <span style={{ color: 'var(--warning)' }}>{warnings} HIGH</span>
+          {osvDone && (
+            <>
+              <span>·</span>
+              <span style={{ color: '#ff4444' }}>{cveCritical} CVE-CRIT</span>
+              <span>·</span>
+              <span style={{ color: '#ff7700' }}>{cveHigh} CVE-HIGH</span>
+              <span>·</span>
+              <span style={{ color: 'var(--fg)' }}>{totalCves} CVEs</span>
+              <span>·</span>
+              <span style={{ color: '#22ff88' }}>{cveClean} CLEAN</span>
+            </>
+          )}
+          <span>·</span>
+          <span style={{ color: 'var(--fg)' }}>{results.length} packages</span>
           {scanning && (
             <span className="ml-1 px-2 py-0.5" style={{ border: '1px solid var(--warning)', color: 'var(--warning)' }}>
               SCANNING...

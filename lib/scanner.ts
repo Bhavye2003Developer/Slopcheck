@@ -1,5 +1,6 @@
-import type { ParsedPackage, ScanResult, Severity, NetworkLogger, NetworkEvent } from './types';
+import type { ParsedPackage, ScanResult, Severity, NetworkLogger, NetworkEvent, CVEEntry, FlagType } from './types';
 import { checkPackage } from './checkers';
+import { checkOsv } from './checkers/checkOsv';
 import { getPackageCached, setPackageCached } from './cache';
 
 const BATCH_SIZE = 10;
@@ -13,9 +14,29 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const CVE_SEV_ORDER: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, UNKNOWN: 4 };
+
+function computeCveSeverity(cves: CVEEntry[]): ScanResult['cveSeverity'] {
+  if (cves.length === 0) return 'CLEAN';
+  const top = cves.reduce((a, b) =>
+    (CVE_SEV_ORDER[a.severity] ?? 4) <= (CVE_SEV_ORDER[b.severity] ?? 4) ? a : b
+  );
+  const s = top.severity;
+  if (s === 'LOW' || s === 'UNKNOWN') return 'LOW';
+  return s;
+}
+
+function cveFlag(sev: ScanResult['cveSeverity']): FlagType | null {
+  if (sev === 'CRITICAL') return 'has_cve_critical';
+  if (sev === 'HIGH') return 'has_cve_high';
+  if (sev === 'MEDIUM') return 'has_cve_medium';
+  return null;
+}
+
 export interface ScanCallbacks {
   onResult?: (result: ScanResult, done: number, total: number) => void;
   onNetworkEvent?: (event: NetworkEvent) => void;
+  onOsvResult?: (result: ScanResult) => void;
 }
 
 export async function runScan(packages: ParsedPackage[], callbacks: ScanCallbacks = {}): Promise<ScanResult[]> {
@@ -47,11 +68,25 @@ export async function runScan(packages: ParsedPackage[], callbacks: ScanCallback
     if (i + BATCH_SIZE < packages.length) await sleep(BATCH_DELAY_MS);
   }
 
-  return results.sort((a, b) => {
+  const sorted = results.sort((a, b) => {
     const s = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
     if (s !== 0) return s;
     const fa = FLAG_SUBORDER[a.flag] ?? 99;
     const fb = FLAG_SUBORDER[b.flag] ?? 99;
     return fa - fb;
   });
+
+  if (callbacks.onOsvResult) {
+    const { onOsvResult } = callbacks;
+    void Promise.allSettled(
+      sorted.map(async result => {
+        const cves = await checkOsv(result.package.name, result.package.ecosystem).catch(() => [] as CVEEntry[]);
+        const cveSeverity = computeCveSeverity(cves);
+        const flag = cveFlag(cveSeverity);
+        onOsvResult({ ...result, cves, cveSeverity, ...(flag ? { flag } : {}) });
+      })
+    );
+  }
+
+  return sorted;
 }

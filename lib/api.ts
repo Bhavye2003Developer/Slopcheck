@@ -22,4 +22,7 @@ export const API = {
     registry:  (name: string) => `https://crates.io/api/v1/crates/${name}`,
     page:      (name: string) => `https://crates.io/crates/${name}`,
   },
+  osv: {
+    query: 'https://api.osv.dev/v1/query',
+  },
 };

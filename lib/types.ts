@@ -20,7 +20,10 @@ export type FlagType =
   | 'outdated'
   | 'low_adoption_latest'
   | 'clean'
-  | 'unsupported';
+  | 'unsupported'
+  | 'has_cve_critical'
+  | 'has_cve_high'
+  | 'has_cve_medium';
 
 export type Severity = 'critical' | 'high' | 'medium' | 'clean' | 'unsupported';
 
@@ -30,6 +33,14 @@ export interface ParsedPackage {
   ecosystem: Ecosystem;
   raw: string;
   isDev?: boolean;
+}
+
+export interface CVEEntry {
+  id: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
+  cvss: number | null;
+  summary: string;
+  fixedIn?: string;
 }
 
 export interface ScanResult {
@@ -48,4 +59,6 @@ export interface ScanResult {
     hasPostInstall?: boolean;
     postInstallScript?: string;
   };
+  cves?: CVEEntry[];
+  cveSeverity?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'CLEAN';
 }
