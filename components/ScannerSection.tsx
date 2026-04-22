@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import LZString from 'lz-string';
 import ScanInput from './scanner/ScanInput';
 import ScanProgress from './scanner/ScanProgress';
 import ResultsTable from './scanner/ResultsTable';
@@ -19,12 +20,32 @@ export default function ScannerSection() {
   const [networkEvents, setNetworkEvents] = useState<NetworkEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [isSharedView, setIsSharedView] = useState(false);
+  const [sharedDismissed, setSharedDismissed] = useState(false);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash.startsWith('#share=')) return;
+    try {
+      const compressed = hash.slice(7);
+      const json = LZString.decompressFromEncodedURIComponent(compressed);
+      if (!json) return;
+      const parsed: unknown = JSON.parse(json);
+      if (!Array.isArray(parsed)) return;
+      setResults(parsed as ScanResult[]);
+      setIsSharedView(true);
+    } catch {
+      // malformed hash — ignore silently
+    }
+  }, []);
 
   const handleScan = useCallback(async (
     content: string,
     ecosystem: EcosystemHint,
     includeDevDeps: boolean
   ) => {
+    setIsSharedView(false);
+    setSharedDismissed(false);
     setError(null);
     setResults([]);
     setNetworkEvents([]);
@@ -94,7 +115,28 @@ export default function ScannerSection() {
         )}
 
         {results.length > 0 && (
-          <ResultsTable results={results} scanning={scanning} />
+          <>
+            {isSharedView && !sharedDismissed && (
+              <div
+                className="flex items-center justify-between mt-6 px-4 py-2 text-xs tracking-widest"
+                style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}
+              >
+                <span>
+                  SHARED REPORT
+                  <span style={{ color: '#444', marginLeft: 8 }}>· results loaded from link</span>
+                </span>
+                <button
+                  onClick={() => setSharedDismissed(true)}
+                  style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: 11, letterSpacing: '0.05em' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#555')}
+                >
+                  DISMISS ×
+                </button>
+              </div>
+            )}
+            <ResultsTable results={results} scanning={scanning} />
+          </>
         )}
 
         <NetworkTrail events={networkEvents} />
