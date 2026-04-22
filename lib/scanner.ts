@@ -74,6 +74,7 @@ export async function runScan(packages: ParsedPackage[], callbacks: ScanCallback
     const { onOsvResult } = callbacks;
     void Promise.allSettled(
       sorted.map(async result => {
+        if (!result.meta.exists) return;
         const cves = await checkOsv(result.package.name, result.package.ecosystem).catch(() => [] as CVEEntry[]);
         const cveSeverity = computeCveSeverity(cves);
         onOsvResult({ ...result, cves, cveSeverity });
