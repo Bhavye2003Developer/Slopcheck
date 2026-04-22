@@ -399,6 +399,7 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
                     const rect = e.currentTarget.getBoundingClientRect();
                     setTip({ p, x: rect.left - svg.left + 10, y: rect.top - svg.top - 58 });
                   }}
+                  onMouseLeave={() => setTip(null)}
                 />
               </g>
             );
