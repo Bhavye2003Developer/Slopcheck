@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import LZString from 'lz-string';
 import type { ScanResult, Severity, CVEEntry } from '@/lib/types';
 import ScanCharts, { type ChartFilter, matchesFilter } from './ScanCharts';
 
@@ -158,6 +159,7 @@ function downloadFile(content: string, filename: string, mime: string) {
 export default function ResultsTable({ results, scanning = false }: ResultsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<ChartFilter>(null);
+  const [shareCopied, setShareCopied] = useState(false);
 
   if (results.length === 0) return null;
 
@@ -277,6 +279,21 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
     downloadFile(lines.join('\n') + summary, 'slopcheck-results.txt', 'text/plain');
   }
 
+  function shareReport() {
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(results));
+    const url = `${window.location.origin}${window.location.pathname}#share=${compressed}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      }).catch(() => {
+        prompt('Copy this link to share the report:', url);
+      });
+    } else {
+      prompt('Copy this link to share the report:', url);
+    }
+  }
+
   return (
     <div className="mt-6">
       {/* Summary bar */}
@@ -328,6 +345,15 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
               onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             >
               TXT
+            </button>
+            <button
+              onClick={shareReport}
+              className="text-xs tracking-widest px-3 py-2 transition-colors"
+              style={{ border: '1px solid var(--border)', color: shareCopied ? 'var(--clean)' : 'var(--fg)' }}
+              onMouseEnter={e => { if (!shareCopied) e.currentTarget.style.borderColor = 'var(--fg)'; }}
+              onMouseLeave={e => { if (!shareCopied) e.currentTarget.style.borderColor = 'var(--border)'; }}
+            >
+              {shareCopied ? 'COPIED!' : 'SHARE →'}
             </button>
           </div>
         )}
