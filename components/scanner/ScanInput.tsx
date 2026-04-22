@@ -51,10 +51,10 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
           value={ecosystem}
           onChange={e => setEcosystem(e.target.value as EcosystemHint)}
           className="text-xs tracking-wider bg-transparent outline-none cursor-pointer ml-auto shrink-0"
-          style={{ color: 'var(--fg)', border: '1px solid var(--border)', padding: '2px 6px' }}
+          style={{ color: 'var(--fg)', border: '1px solid var(--border)', padding: '2px 6px', fontFamily: 'var(--font-mono)' }}
         >
           {FORMAT_OPTIONS.map(o => (
-            <option key={o.value} value={o.value} style={{ background: '#0f0f0f' }}>{o.label}</option>
+            <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
       </div>
@@ -66,7 +66,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
         placeholder={'Paste contents here...\n\ne.g. package.json, requirements.txt, go.mod'}
         rows={10}
         className="w-full bg-transparent outline-none resize-none px-4 py-4 text-xs leading-relaxed"
-        style={{ color: 'var(--fg)', caretColor: 'var(--fg)' }}
+        style={{ color: 'var(--fg)', caretColor: 'var(--fg)', fontFamily: 'var(--font-mono)' }}
         spellCheck={false}
       />
 
