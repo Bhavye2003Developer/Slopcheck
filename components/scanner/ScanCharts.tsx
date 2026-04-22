@@ -49,14 +49,14 @@ function Card({
   onClear?: () => void;
 }) {
   return (
-    <div className="flex flex-col p-4" style={{ border: '1px solid #1a1a1a', background: '#060606', height: '100%' }}>
+    <div className="flex flex-col p-4" style={{ border: '1px solid var(--border)', background: '#060606', height: '100%' }}>
       <div className="flex items-center justify-between mb-3" style={{ flexShrink: 0 }}>
         <p className="text-xs tracking-widest" style={{ color: '#444' }}>{title}</p>
         {onClear && (
           <button
             onClick={onClear}
             className="text-xs tracking-widest px-2 py-0.5"
-            style={{ color: '#888', border: '1px solid #2a2a2a', background: 'none', cursor: 'pointer' }}
+            style={{ color: '#888', border: '1px solid var(--border)', background: 'none', cursor: 'pointer' }}
           >
             RESET ×
           </button>
@@ -449,7 +449,7 @@ export default function ScanCharts({
             onClick={() => onFilter(null)}
             style={{
               fontSize: 11, color: '#888', background: 'none',
-              border: '1px solid #2a2a2a', padding: '3px 10px', cursor: 'pointer', letterSpacing: '0.05em',
+              border: '1px solid var(--border)', padding: '3px 10px', cursor: 'pointer', letterSpacing: '0.05em',
             }}
           >
             RESET FILTER ×
