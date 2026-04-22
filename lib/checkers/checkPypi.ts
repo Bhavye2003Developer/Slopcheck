@@ -28,11 +28,10 @@ export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promis
   const pypiData = registryResult.status === 'fulfilled' ? registryResult.value : null;
   const dlData = downloadsResult.status === 'fulfilled' ? downloadsResult.value : null;
 
-  if (!pypiData) {
+  const info = pypiData?.info as Record<string, unknown> | undefined;
+  if (!pypiData || !info) {
     return { package: pkg, flag: 'nonexistent', severity: 'critical', reason: 'Package not found on PyPI', registryUrl, meta: { exists: false } };
   }
-
-  const info = pypiData.info as Record<string, unknown> | undefined;
   const latestVersion = info?.version as string | undefined;
 
   const releases = pypiData.releases as Record<string, { upload_time?: string }[]> | undefined;

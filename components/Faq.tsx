@@ -5,11 +5,11 @@ import { useState } from 'react';
 const faqs = [
   {
     q: 'DOES THIS SEND MY FILE ANYWHERE?',
-    a: 'No. Your manifest never leaves your browser. We query npm and PyPI registries directly from your machine using their public APIs. No server, no logs, no telemetry.',
+    a: 'No. Your manifest never leaves your browser. All registry checks (npm, PyPI, RubyGems, Go, crates.io) are made directly from your machine using their public APIs. No server, no logs, no telemetry.',
   },
   {
     q: 'WHAT FILE FORMATS ARE SUPPORTED?',
-    a: 'package.json (npm), requirements.txt, pyproject.toml (PyPI), Gemfile (RubyGems), go.mod (Go), and Cargo.toml (Rust). Registry checks are live for npm and PyPI. Others are parsed but marked as coming soon.',
+    a: 'package.json (npm), requirements.txt, pyproject.toml (PyPI), Gemfile (RubyGems), go.mod (Go), and Cargo.toml (Rust). Registry checks are live for all formats.',
   },
   {
     q: 'HOW IS THE DOWNLOAD THRESHOLD DETERMINED?',
@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'CAN THIS CATCH MALICIOUS PACKAGES THAT DO EXIST?',
-    a: 'Partially. We flag suspicious post-install scripts (curl, wget, eval) in npm packages. We do not scan source code or compare against CVE databases - that\'s out of scope for v1.',
+    a: 'Partially. We flag suspicious post-install scripts (curl, wget, eval) in npm packages, and cross-check every scanned package against the OSV vulnerability database for known CVEs. We do not scan source code.',
   },
   {
     q: 'IS THIS OPEN SOURCE?',
