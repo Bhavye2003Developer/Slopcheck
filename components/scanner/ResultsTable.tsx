@@ -320,8 +320,22 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
 
       {/* Table */}
       <div style={{ border: '1px solid var(--border)', maxHeight: '600px', overflowY: 'auto' }}>
-        {renderGroup(deps, 'DEPENDENCIES', 0)}
-        {devDeps.length > 0 && renderGroup(devDeps, 'DEV DEPENDENCIES', deps.length)}
+        {deps.length === 0 && devDeps.length === 0 ? (
+          <div className="px-4 py-8 text-xs tracking-widest text-center" style={{ color: '#333' }}>
+            NO PACKAGES MATCH THIS FILTER
+            <button
+              onClick={() => setFilter(null)}
+              style={{ display: 'block', margin: '8px auto 0', color: '#555', background: 'none', border: '1px solid #2a2a2a', padding: '4px 12px', cursor: 'pointer', fontSize: 11 }}
+            >
+              RESET ×
+            </button>
+          </div>
+        ) : (
+          <>
+            {renderGroup(deps, 'DEPENDENCIES', 0)}
+            {devDeps.length > 0 && renderGroup(devDeps, 'DEV DEPENDENCIES', deps.length)}
+          </>
+        )}
       </div>
     </div>
   );
