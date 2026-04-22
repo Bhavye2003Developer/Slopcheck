@@ -55,13 +55,14 @@ interface ResultsTableProps {
 
 function buildSummary(results: ScanResult[]) {
   const critical = results.filter(r => r.severity === 'critical').length;
-  const warnings = results.filter(r => r.severity === 'high' || r.severity === 'medium').length;
-  const clean = results.filter(r => r.severity === 'clean').length;
+  const high     = results.filter(r => r.severity === 'high').length;
+  const medium   = results.filter(r => r.severity === 'medium').length;
+  const clean    = results.filter(r => r.severity === 'clean').length;
   const cveCritical = results.filter(r => r.cveSeverity === 'CRITICAL').length;
-  const cveHigh = results.filter(r => r.cveSeverity === 'HIGH').length;
-  const totalCves = results.reduce((sum, r) => sum + (r.cves?.length ?? 0), 0);
-  const cveClean = results.filter(r => r.cveSeverity === 'CLEAN').length;
-  return { critical, warnings, clean, cveCritical, cveHigh, totalCves, cveClean };
+  const cveHigh     = results.filter(r => r.cveSeverity === 'HIGH').length;
+  const totalCves   = results.reduce((sum, r) => sum + (r.cves?.length ?? 0), 0);
+  const cveClean    = results.filter(r => r.cveSeverity === 'CLEAN').length;
+  return { critical, high, medium, clean, cveCritical, cveHigh, totalCves, cveClean };
 }
 
 function VulnPill({ result }: { result: ScanResult }) {
@@ -161,7 +162,7 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
   if (results.length === 0) return null;
 
   const displayed = results.filter(r => matchesFilter(r, filter));
-  const { critical, warnings, clean, cveCritical, cveHigh, totalCves, cveClean } = buildSummary(results);
+  const { critical, high, medium, clean, cveCritical, cveHigh, totalCves, cveClean } = buildSummary(results);
   const deps    = displayed.filter(r => !r.package.isDev);
   const devDeps = displayed.filter(r => r.package.isDev);
   const osvDone = results.some(r => r.cveSeverity !== undefined);
@@ -272,7 +273,7 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
       const updated = r.meta.updatedAt ? ` |updated ${fmtDate(r.meta.updatedAt)}` : '';
       return `${SEVERITY_LABEL[r.severity].padEnd(14)} ${(r.package.name + ver).padEnd(45)} ${r.reason}${latest}${dl}${updated}`;
     });
-    const summary = `\n---\n${critical} critical |${warnings} warnings |${clean} clean`;
+    const summary = `\n---\n${critical} critical |${high} high |${medium} medium |${clean} clean`;
     downloadFile(lines.join('\n') + summary, 'slopcheck-results.txt', 'text/plain');
   }
 
@@ -285,7 +286,9 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
           <span>·</span>
           <span style={{ color: 'var(--critical)' }}>{critical} CRITICAL</span>
           <span>·</span>
-          <span style={{ color: 'var(--warning)' }}>{warnings} HIGH</span>
+          <span style={{ color: 'var(--warning)' }}>{high} HIGH</span>
+          <span>·</span>
+          <span style={{ color: '#ffaa00' }}>{medium} MED</span>
           {osvDone && (
             <>
               <span>·</span>
@@ -333,13 +336,13 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
       <ScanCharts results={results} scanning={scanning} filter={filter} onFilter={setFilter} />
 
       {/* Table */}
-      <div style={{ border: '1px solid var(--border)', maxHeight: '600px', overflowY: 'auto' }}>
+      <div style={{ border: '1px solid var(--border)', maxHeight: 'min(600px, 70vh)', overflowY: 'auto' }}>
         {deps.length === 0 && devDeps.length === 0 ? (
           <div className="px-4 py-8 text-xs tracking-widest text-center" style={{ color: '#333' }}>
             NO PACKAGES MATCH THIS FILTER
             <button
               onClick={() => setFilter(null)}
-              style={{ display: 'block', margin: '8px auto 0', color: '#555', background: 'none', border: '1px solid #2a2a2a', padding: '4px 12px', cursor: 'pointer', fontSize: 11 }}
+              style={{ display: 'block', margin: '8px auto 0', color: '#555', background: 'none', border: '1px solid var(--border)', padding: '4px 12px', cursor: 'pointer', fontSize: 11 }}
             >
               RESET ×
             </button>
