@@ -43,7 +43,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
       <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
         <span className="tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>PASTE MANIFEST</span>
         {detected && (
-          <span className="text-xs px-2 py-0.5 tracking-wider shrink-0" style={{ border: '1px solid var(--clean)', color: 'var(--clean)' }}>
+          <span className="text-xs px-2 py-0.5 tracking-wider" style={{ border: '1px solid var(--clean)', color: 'var(--clean)', maxWidth: 'min(100%, 220px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             DETECTED: {detected}
           </span>
         )}

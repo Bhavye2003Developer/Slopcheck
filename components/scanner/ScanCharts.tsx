@@ -9,6 +9,7 @@ export type ChartFilter =
   | { type: 'severity'; value: string }
   | { type: 'cve';      value: string }
   | { type: 'age';      bucket: number }
+  | { type: 'package';  name: string }
   | null;
 
 function ageBucket(createdAt?: string): number {
@@ -26,10 +27,10 @@ export function matchesFilter(r: ScanResult, f: ChartFilter): boolean {
   if (f.type === 'cve') return r.cveSeverity === f.value;
   if (f.type === 'age') {
     const bucket = (f as { type: 'age'; bucket: number }).bucket;
-    // mirror exactly what the histogram counts: only existing packages, bucketed by createdAt
-    if (!r.meta.exists) return bucket === 3; // nonexistent → treat as unknown/oldest bucket
+    if (!r.meta.exists) return bucket === 3;
     return ageBucket(r.meta.createdAt) === bucket;
   }
+  if (f.type === 'package') return r.package.name === (f as { type: 'package'; name: string }).name;
   return true;
 }
 
@@ -103,9 +104,9 @@ function Ring({
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 12 }}>
-      {/* legend — fixed width, left-pinned */}
-      <div style={{ width: 128, flexShrink: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 16 }}>
+      {/* legend — fixed width */}
+      <div style={{ width: 118, flexShrink: 0 }}>
         {arcs.map((a, i) => {
           const isActive = activeVal === a.filterVal;
           const dimmed   = activeVal !== null && !isActive;
@@ -130,11 +131,11 @@ function Ring({
         })}
       </div>
 
-      {/* ring — centered in remaining space */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      {/* ring — fixed width so the pair centers in card */}
+      <div style={{ width: 170, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
         <svg
           viewBox={`0 0 ${SZ} ${SZ}`}
-          style={{ width: 'min(100%, 170px)', height: 'auto' }}
+          style={{ width: '100%', height: 'auto' }}
         >
           <circle cx={cx} cy={cy} r={R} fill="none" stroke="#151515" strokeWidth={SW} />
           {arcs.map((a, i) => {
@@ -332,17 +333,18 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
   const dzX2 = xPos(180);
   const dzY1 = yPos(500);
 
+  const activePkg = active?.type === 'package' ? (active as { type: 'package'; name: string }).name : null;
   const activeSev = active?.type === 'severity' ? active.value : null;
 
-  function toggleSev(sev: Severity) {
-    if (activeSev === sev) onFilter(null);
-    else onFilter({ type: 'severity', value: sev });
+  function togglePkg(name: string) {
+    if (activePkg === name) onFilter(null);
+    else onFilter({ type: 'package', name });
   }
 
   return (
     <Card
-      title="RISK SCATTER  ·  age vs downloads  ·  click dot to filter  ·  ring = has CVEs"
-      onClear={active?.type === 'severity' ? () => onFilter(null) : undefined}
+      title="RISK SCATTER  ·  age vs downloads  ·  click dot to isolate package  ·  ring = has CVEs"
+      onClear={(active?.type === 'severity' || active?.type === 'package') ? () => onFilter(null) : undefined}
     >
       <div style={{ position: 'relative', width: '100%' }}>
         <svg
@@ -382,9 +384,9 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
           {points.map(p => {
             const px = xPos(p.ageDays), py = yPos(p.downloads);
             const color  = SEV_COLOR[p.severity];
-            const dimmed = activeSev !== null && activeSev !== p.severity;
+            const dimmed = activePkg !== null ? activePkg !== p.name : (activeSev !== null && activeSev !== p.severity);
             return (
-              <g key={p.name} style={{ cursor: 'pointer' }} onClick={() => toggleSev(p.severity)}>
+              <g key={p.name} style={{ cursor: 'pointer' }} onClick={() => togglePkg(p.name)}>
                 {p.hasCve && (
                   <circle cx={px} cy={py} r={11} fill="none" stroke={color} strokeWidth={1}
                     opacity={dimmed ? 0.08 : 0.35} />
