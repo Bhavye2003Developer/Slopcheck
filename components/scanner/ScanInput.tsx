@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { EcosystemHint } from '@/lib/parsers';
 import { detectEcosystem, ECOSYSTEM_META } from '@/lib/parsers';
 
@@ -22,14 +22,11 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
   const [content, setContent] = useState('');
   const [ecosystem, setEcosystem] = useState<EcosystemHint>('auto');
   const [includeDevDeps, setIncludeDevDeps] = useState(true);
-  const [detected, setDetected] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!content.trim()) { setDetected(null); return; }
-    if (ecosystem !== 'auto') { setDetected(null); return; }
+  const detected = useMemo<string | null>(() => {
+    if (!content.trim() || ecosystem !== 'auto') return null;
     const eco = detectEcosystem(content);
     const meta = ECOSYSTEM_META[eco];
-    setDetected(`${meta.file} - ${meta.label}`);
+    return `${meta.file} - ${meta.label}`;
   }, [content, ecosystem]);
 
   function handleScan() {

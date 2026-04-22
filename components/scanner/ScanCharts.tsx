@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { ScanResult, Severity } from '@/lib/types';
 
 // ─── filter type ──────────────────────────────────────────────────────────────
@@ -86,13 +86,15 @@ function Ring({
   const R = 68, SW = 18, SZ = 176, cx = 88, cy = 88;
   const C = 2 * Math.PI * R;
   const visible = segs.filter(s => s.count > 0);
-  let cum = 0;
-  const arcs = visible.map(s => {
-    const dash = (s.count / total) * C;
-    const off  = C * 0.25 - cum;
-    cum += dash;
-    return { ...s, dash, off };
-  });
+  const arcs = visible.reduce<Array<RingSeg & { dash: number; off: number }>>(
+    (acc, s) => {
+      const cum = acc.reduce((sum, a) => sum + a.dash, 0);
+      const dash = (s.count / total) * C;
+      const off  = C * 0.25 - cum;
+      return [...acc, { ...s, dash, off }];
+    },
+    []
+  );
 
   const activeVal = active?.type === filterType
     ? (active as { type: string; value: string }).value
@@ -290,6 +292,10 @@ function AgeHistogram({ results, active, onFilter }: { results: ScanResult[]; ac
 
 interface ScatterPt { name: string; ageDays: number; downloads: number; severity: Severity; hasCve: boolean }
 
+function calcAgeDays(createdAt: string): number {
+  return Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000);
+}
+
 function fmtAge(d: number) {
   if (d < 30)  return `${d}d`;
   if (d < 365) return `${Math.round(d / 30)}mo`;
@@ -303,16 +309,15 @@ function fmtDl(n: number) {
 
 function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; active: ChartFilter; onFilter: (f: ChartFilter) => void }) {
   const [tip, setTip] = useState<{ p: ScatterPt; x: number; y: number } | null>(null);
-
-  const points: ScatterPt[] = results
+  const points: ScatterPt[] = useMemo(() => results
     .filter(r => r.meta.exists && r.meta.createdAt && r.meta.monthlyDownloads !== undefined)
     .map(r => ({
       name:      r.package.name,
-      ageDays:   Math.floor((Date.now() - new Date(r.meta.createdAt!).getTime()) / 86_400_000),
+      ageDays:   calcAgeDays(r.meta.createdAt!),
       downloads: r.meta.monthlyDownloads!,
       severity:  r.severity,
       hasCve:    (r.cves?.length ?? 0) > 0,
-    }));
+    })), [results]);
 
   if (points.length < 2) return null;
 

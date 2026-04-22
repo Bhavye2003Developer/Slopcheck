@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, startTransition } from 'react';
 import LZString from 'lz-string';
 import ScanInput from './scanner/ScanInput';
 import ScanProgress from './scanner/ScanProgress';
@@ -32,8 +32,10 @@ export default function ScannerSection() {
       if (!json) return;
       const parsed: unknown = JSON.parse(json);
       if (!Array.isArray(parsed)) return;
-      setResults(parsed as ScanResult[]);
-      setIsSharedView(true);
+      startTransition(() => {
+        setResults(parsed as ScanResult[]);
+        setIsSharedView(true);
+      });
     } catch {
       // malformed hash — ignore silently
     }
