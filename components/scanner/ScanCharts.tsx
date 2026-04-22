@@ -25,7 +25,10 @@ export function matchesFilter(r: ScanResult, f: ChartFilter): boolean {
   if (f.type === 'severity') return r.severity === f.value;
   if (f.type === 'cve') return r.cveSeverity === f.value;
   if (f.type === 'age') {
-    return ageBucket(r.meta.createdAt) === (f as { type: 'age'; bucket: number }).bucket;
+    const bucket = (f as { type: 'age'; bucket: number }).bucket;
+    // mirror exactly what the histogram counts: only existing packages, bucketed by createdAt
+    if (!r.meta.exists) return bucket === 3; // nonexistent → treat as unknown/oldest bucket
+    return ageBucket(r.meta.createdAt) === bucket;
   }
   return true;
 }
@@ -100,9 +103,9 @@ function Ring({
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
-      {/* legend LEFT — grows, never pushes ring */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 12 }}>
+      {/* legend — fixed width, left-pinned */}
+      <div style={{ width: 128, flexShrink: 0 }}>
         {arcs.map((a, i) => {
           const isActive = activeVal === a.filterVal;
           const dimmed   = activeVal !== null && !isActive;
@@ -111,8 +114,8 @@ function Ring({
               key={i}
               onClick={() => toggle(a.filterVal)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                width: '100%', padding: '4px 6px', marginBottom: 3,
+                display: 'flex', alignItems: 'center', gap: 7,
+                width: '100%', padding: '4px 5px', marginBottom: 3,
                 background: isActive ? '#141414' : 'transparent',
                 border: `1px solid ${isActive ? a.color + '55' : 'transparent'}`,
                 borderRadius: 3, cursor: 'pointer',
@@ -120,36 +123,38 @@ function Ring({
               }}
             >
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: a.color, flexShrink: 0, display: 'inline-block' }} />
-              <span style={{ fontSize: 11, color: '#777', letterSpacing: '0.05em', flexShrink: 0, whiteSpace: 'nowrap' }}>{a.label}</span>
-              <span style={{ fontSize: 11, color: a.color, fontWeight: 700 }}>{a.count}</span>
+              <span style={{ fontSize: 10, color: '#777', letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap' }}>{a.label}</span>
+              <span style={{ fontSize: 10, color: a.color, fontWeight: 700 }}>{a.count}</span>
             </button>
           );
         })}
       </div>
 
-      {/* ring RIGHT — fixed proportional size, never moves */}
-      <svg
-        viewBox={`0 0 ${SZ} ${SZ}`}
-        style={{ width: 'clamp(110px, 42%, 170px)', height: 'auto', flexShrink: 0 }}
-      >
-        <circle cx={cx} cy={cy} r={R} fill="none" stroke="#151515" strokeWidth={SW} />
-        {arcs.map((a, i) => {
-          const dimmed = activeVal !== null && activeVal !== a.filterVal;
-          return (
-            <circle key={i} cx={cx} cy={cy} r={R}
-              fill="none" stroke={a.color} strokeWidth={SW}
-              strokeDasharray={`${a.dash} ${C - a.dash}`}
-              strokeDashoffset={a.off}
-              strokeLinecap="butt"
-              opacity={dimmed ? 0.13 : 1}
-              style={{ cursor: 'pointer' }}
-              onClick={() => toggle(a.filterVal)}
-            />
-          );
-        })}
-        <text x={cx} y={cy - 6}  textAnchor="middle" fontSize={22} fontWeight="bold" fill="#e0e0e0">{total}</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fontSize={9}  fill="#444" letterSpacing="2">{center}</text>
-      </svg>
+      {/* ring — centered in remaining space */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <svg
+          viewBox={`0 0 ${SZ} ${SZ}`}
+          style={{ width: 'min(100%, 170px)', height: 'auto' }}
+        >
+          <circle cx={cx} cy={cy} r={R} fill="none" stroke="#151515" strokeWidth={SW} />
+          {arcs.map((a, i) => {
+            const dimmed = activeVal !== null && activeVal !== a.filterVal;
+            return (
+              <circle key={i} cx={cx} cy={cy} r={R}
+                fill="none" stroke={a.color} strokeWidth={SW}
+                strokeDasharray={`${a.dash} ${C - a.dash}`}
+                strokeDashoffset={a.off}
+                strokeLinecap="butt"
+                opacity={dimmed ? 0.13 : 1}
+                style={{ cursor: 'pointer' }}
+                onClick={() => toggle(a.filterVal)}
+              />
+            );
+          })}
+          <text x={cx} y={cy - 6}  textAnchor="middle" fontSize={22} fontWeight="bold" fill="#e0e0e0">{total}</text>
+          <text x={cx} y={cy + 14} textAnchor="middle" fontSize={9}  fill="#444" letterSpacing="2">{center}</text>
+        </svg>
+      </div>
     </div>
   );
 }

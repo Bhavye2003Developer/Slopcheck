@@ -40,19 +40,17 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
   return (
     <div className="rounded text-xs" style={{ border: '1px solid var(--border)', background: '#0f0f0f' }}>
       {/* Title bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>PASTE MANIFEST</span>
-          {detected && (
-            <span className="truncate text-xs px-2 py-0.5 tracking-wider" style={{ border: '1px solid var(--clean)', color: 'var(--clean)' }}>
-              DETECTED: {detected}
-            </span>
-          )}
-        </div>
+      <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+        <span className="tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>PASTE MANIFEST</span>
+        {detected && (
+          <span className="text-xs px-2 py-0.5 tracking-wider shrink-0" style={{ border: '1px solid var(--clean)', color: 'var(--clean)' }}>
+            DETECTED: {detected}
+          </span>
+        )}
         <select
           value={ecosystem}
           onChange={e => setEcosystem(e.target.value as EcosystemHint)}
-          className="text-xs tracking-wider bg-transparent outline-none cursor-pointer ml-3 shrink-0"
+          className="text-xs tracking-wider bg-transparent outline-none cursor-pointer ml-auto shrink-0"
           style={{ color: 'var(--fg)', border: '1px solid var(--border)', padding: '2px 6px' }}
         >
           {FORMAT_OPTIONS.map(o => (
