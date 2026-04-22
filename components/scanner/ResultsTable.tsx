@@ -86,6 +86,11 @@ function fmtDateShort(iso?: string): string {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function cveUrl(id: string): string {
+  if (/^CVE-/i.test(id)) return `https://nvd.nist.gov/vuln/detail/${id}`;
+  return `https://osv.dev/vulnerability/${id}`;
+}
+
 function CvePanel({ cves }: { cves: CVEEntry[] }) {
   if (cves.length === 0) return null;
   return (
@@ -96,7 +101,16 @@ function CvePanel({ cves }: { cves: CVEEntry[] }) {
           const color = VULN_COLOR[cve.severity] ?? '#555';
           return (
             <div key={cve.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-mono">
-              <span style={{ color: 'var(--fg)' }}>{cve.id}</span>
+              <a
+                href={cveUrl(cve.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--fg)', textDecorationLine: 'underline', textDecorationColor: '#444' }}
+                onMouseEnter={e => (e.currentTarget.style.textDecorationColor = 'var(--fg)')}
+                onMouseLeave={e => (e.currentTarget.style.textDecorationColor = '#444')}
+              >
+                {cve.id}
+              </a>
               <span style={{ color }}>{cve.severity}</span>
               {cve.cvss !== null && (
                 <span style={{ color: 'var(--muted)' }}>CVSS {cve.cvss.toFixed(1)}</span>
@@ -161,7 +175,7 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
     });
   }
 
-  function renderRow(r: ScanResult, i: number, globalIndex: number) {
+  function renderRow(r: ScanResult, _i: number, globalIndex: number) {
     const fileVer = r.package.version ?? '-';
     const latestVer = r.meta.latestVersion ?? '-';
     const versionMismatch = r.meta.latestVersion && r.package.version && r.package.version !== r.meta.latestVersion;
