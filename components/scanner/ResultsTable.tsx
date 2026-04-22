@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ScanResult, Severity, CVEEntry } from '@/lib/types';
-import ScanCharts from './ScanCharts';
+import ScanCharts, { type ChartFilter, matchesFilter } from './ScanCharts';
 
 import type { FlagType } from '@/lib/types';
 
@@ -142,12 +142,14 @@ function downloadFile(content: string, filename: string, mime: string) {
 
 export default function ResultsTable({ results, scanning = false }: ResultsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<ChartFilter>(null);
 
   if (results.length === 0) return null;
 
+  const displayed = results.filter(r => matchesFilter(r, filter));
   const { critical, warnings, clean, cveCritical, cveHigh, totalCves, cveClean } = buildSummary(results);
-  const deps = results.filter(r => !r.package.isDev);
-  const devDeps = results.filter(r => r.package.isDev);
+  const deps    = displayed.filter(r => !r.package.isDev);
+  const devDeps = displayed.filter(r => r.package.isDev);
   const osvDone = results.some(r => r.cveSeverity !== undefined);
 
   function toggleExpanded(key: string) {
@@ -234,9 +236,10 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
       <>
         <div
           className="px-3 md:px-4 py-2 text-xs tracking-widest"
-          style={{ background: '#111', color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}
+          style={{ background: '#111', color: 'var(--muted)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 1 }}
         >
           {label} <span style={{ color: 'var(--fg)' }}>{group.length}</span>
+          {filter && <span style={{ color: '#555', marginLeft: 8 }}>· filtered</span>}
         </div>
         {group.map((r, i) => renderRow(r, i, offset + i))}
       </>
@@ -313,7 +316,7 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
         )}
       </div>
 
-      <ScanCharts results={results} scanning={scanning} />
+      <ScanCharts results={results} scanning={scanning} filter={filter} onFilter={setFilter} />
 
       {/* Table */}
       <div style={{ border: '1px solid var(--border)', maxHeight: '600px', overflowY: 'auto' }}>
