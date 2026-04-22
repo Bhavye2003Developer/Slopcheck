@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ScanResult, Severity, CVEEntry } from '@/lib/types';
+import ScanCharts from './ScanCharts';
 
 import type { FlagType } from '@/lib/types';
 
@@ -311,6 +312,8 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
           </div>
         )}
       </div>
+
+      <ScanCharts results={results} scanning={scanning} />
 
       {/* Table */}
       <div style={{ border: '1px solid var(--border)', maxHeight: '600px', overflowY: 'auto' }}>
