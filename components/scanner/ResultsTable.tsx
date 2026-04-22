@@ -14,9 +14,9 @@ const FLAG_LABEL: Partial<Record<FlagType, string>> = {
   low_adoption_latest: '⚠️  LOW ADOPT',
   clean: '✅ CLEAN',
   unsupported: 'N/A',
-  has_cve_critical: '❌ NOT FOUND',
-  has_cve_high: '⚠️  NEW PKG',
-  has_cve_medium: '⚠️  LOW DL',
+  has_cve_critical: '🔴 CVE CRIT',
+  has_cve_high: '🟠 CVE HIGH',
+  has_cve_medium: '🟡 CVE MED',
 };
 
 const SEVERITY_LABEL: Record<Severity, string> = {

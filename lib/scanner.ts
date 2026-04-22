@@ -1,4 +1,4 @@
-import type { ParsedPackage, ScanResult, Severity, NetworkLogger, NetworkEvent, CVEEntry, FlagType } from './types';
+import type { ParsedPackage, ScanResult, Severity, NetworkLogger, NetworkEvent, CVEEntry } from './types';
 import { checkPackage } from './checkers';
 import { checkOsv } from './checkers/checkOsv';
 import { getPackageCached, setPackageCached } from './cache';
@@ -26,12 +26,6 @@ function computeCveSeverity(cves: CVEEntry[]): ScanResult['cveSeverity'] {
   return s;
 }
 
-function cveFlag(sev: ScanResult['cveSeverity']): FlagType | null {
-  if (sev === 'CRITICAL') return 'has_cve_critical';
-  if (sev === 'HIGH') return 'has_cve_high';
-  if (sev === 'MEDIUM') return 'has_cve_medium';
-  return null;
-}
 
 export interface ScanCallbacks {
   onResult?: (result: ScanResult, done: number, total: number) => void;
@@ -82,8 +76,7 @@ export async function runScan(packages: ParsedPackage[], callbacks: ScanCallback
       sorted.map(async result => {
         const cves = await checkOsv(result.package.name, result.package.ecosystem).catch(() => [] as CVEEntry[]);
         const cveSeverity = computeCveSeverity(cves);
-        const flag = cveFlag(cveSeverity);
-        onOsvResult({ ...result, cves, cveSeverity, ...(flag ? { flag } : {}) });
+        onOsvResult({ ...result, cves, cveSeverity });
       })
     );
   }
