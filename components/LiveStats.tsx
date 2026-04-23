@@ -111,9 +111,10 @@ export default function LiveStats() {
   if (loaded && stats.length === 0) return null;
 
   const cols = loaded ? Math.min(stats.length, 3) : 3;
+  const colClass = cols === 1 ? 'md:grid-cols-1' : cols === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3';
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-${cols} gap-px`} style={{ background: 'var(--border)' }}>
+    <div className={`grid grid-cols-1 ${colClass} gap-px`} style={{ background: 'var(--border)' }}>
       {loaded ? stats.map((s, i) => (
         <div key={i} className="px-6 md:px-8 py-10" style={{ background: 'var(--bg)' }}>
           <div className="text-4xl md:text-5xl font-bold mb-3 tracking-tight" style={{ color: 'var(--warning)' }}>

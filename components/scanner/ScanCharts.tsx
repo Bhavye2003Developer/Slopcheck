@@ -106,9 +106,9 @@ function Ring({
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 16 }}>
-      {/* legend — fixed width */}
-      <div style={{ width: 118, flexShrink: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 12, overflow: 'hidden' }}>
+      {/* legend — shrinkable */}
+      <div style={{ width: 110, flexShrink: 1, minWidth: 80 }}>
         {arcs.map((a, i) => {
           const isActive = activeVal === a.filterVal;
           const dimmed   = activeVal !== null && !isActive;
@@ -133,8 +133,8 @@ function Ring({
         })}
       </div>
 
-      {/* ring — fixed width so the pair centers in card */}
-      <div style={{ width: 170, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+      {/* ring — shrinkable */}
+      <div style={{ width: 160, flexShrink: 1, minWidth: 110, display: 'flex', alignItems: 'center' }}>
         <svg
           viewBox={`0 0 ${SZ} ${SZ}`}
           style={{ width: '100%', height: 'auto' }}
@@ -355,7 +355,7 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
 
   return (
     <Card
-      title="RISK SCATTER  ·  age vs downloads  ·  click dot to isolate package  ·  ring = has CVEs"
+      title="RISK SCATTER  ·  age vs downloads"
       onClear={(active?.type === 'severity' || active?.type === 'package') ? () => onFilter(null) : undefined}
     >
       <div style={{ position: 'relative', width: '100%', overflowX: 'auto' }}>
