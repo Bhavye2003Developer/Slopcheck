@@ -82,7 +82,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
           INCLUDE DEV DEPENDENCIES
         </label>
         <button
-          onClick={handleScan}
+          onClick={() => handleScan()}
           disabled={!content.trim() || loading}
           className="px-6 py-2 text-xs font-bold tracking-widest transition-opacity disabled:opacity-30"
           style={{ background: 'var(--fg)', color: 'var(--bg)' }}
