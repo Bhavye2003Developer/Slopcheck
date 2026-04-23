@@ -133,6 +133,15 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 | OSV skipped for nonexistent | Prevents hallucinated package names from getting a false CLEAN CVE result |
 | CVE donut edge case | Correctly shows "No packages to scan" when all packages are nonexistent |
 | Nonexistent pkg validation | Field-presence checks catch 200-with-error-body API responses |
+| Copy button per package | `⧉` button next to each package name copies `name@version` to clipboard; flashes green `✓` for 1.5s |
+| Real scan timer | `ScannerSection` records `Date.now()` at scan start, passes `scanMs` to `ResultsTable`; shown as "SCAN COMPLETE 2.3s" in summary bar |
+| ALL CLEAR empty state | Big green `ALL CLEAR` block + package count shown when every result is `severity === 'clean'` and scan is complete |
+| Paste-to-scan | `onPaste` handler in `ScanInput` auto-triggers scan 300ms after paste — no button click needed |
+| robots.ts | `app/robots.ts` serves `/robots.txt`; allows all crawlers, points to `/sitemap.xml` |
+| OG + Twitter meta tags | `layout.tsx` — `og:title`, `og:description`, `og:type`, `og:url`, Twitter card summary_large_image, keywords array |
+| Sitemap | `app/sitemap.ts` — auto-serves `/sitemap.xml`; covers root + all 5 anchor sections with priorities and change frequencies |
+| Google Search Console | `metadata.verification.google` in `layout.tsx` renders verification meta tag |
+| README | Full project README: what it does, supported formats, how it works, all 10 public APIs, tech stack, features, local dev instructions, "Built with Claude Code" |
 
 ---
 
@@ -144,5 +153,5 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 | Threat score dial | Animated gauge (0–100) counting up after scan — screenshot-worthy reveal moment |
 | Badge generator | `![Slop Check](...)` shield badge for READMEs — viral growth loop |
 | Error states | Registry timeout, rate-limit 429, malformed response UI feedback |
-| OG tags + favicon | `layout.tsx` meta tags for link previews |
+| Favicon | Custom terminal-aesthetic favicon in `app/` |
 | `output: 'export'` | Vercel static deploy config in `next.config.ts` |
