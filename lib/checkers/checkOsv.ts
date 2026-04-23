@@ -1,4 +1,4 @@
-import type { Ecosystem, CVEEntry } from '../types';
+import type { Ecosystem, CVEEntry, NetworkLogger } from '../types';
 import { API } from '../api';
 import { fetchWithTimeout, ONE_HOUR } from '../fetch';
 
@@ -99,7 +99,7 @@ function parseSeverityFromVuln(vuln: OsvVuln): CVEEntry['severity'] {
   return 'UNKNOWN';
 }
 
-export async function checkOsv(name: string, ecosystem: Ecosystem): Promise<CVEEntry[]> {
+export async function checkOsv(name: string, ecosystem: Ecosystem, log?: NetworkLogger): Promise<CVEEntry[]> {
   const osvEcosystem = OSV_ECOSYSTEM[ecosystem];
   const body = JSON.stringify({ package: { name, ecosystem: osvEcosystem } });
   const cacheKey = `osv:${ecosystem}:${name}`;
@@ -108,6 +108,9 @@ export async function checkOsv(name: string, ecosystem: Ecosystem): Promise<CVEE
     timeout: 3000,
     ttl: ONE_HOUR,
     cacheKey,
+    log,
+    logPkg: name,
+    logLabel: 'osv cve',
     fetchOptions: {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

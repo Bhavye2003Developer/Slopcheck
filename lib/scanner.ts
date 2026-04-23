@@ -72,10 +72,11 @@ export async function runScan(packages: ParsedPackage[], callbacks: ScanCallback
 
   if (callbacks.onOsvResult) {
     const { onOsvResult } = callbacks;
+    const osvLog: NetworkLogger | undefined = onNetworkEvent ? e => onNetworkEvent(e) : undefined;
     void Promise.allSettled(
       sorted.map(async result => {
         if (!result.meta.exists) return;
-        const cves = await checkOsv(result.package.name, result.package.ecosystem).catch(() => [] as CVEEntry[]);
+        const cves = await checkOsv(result.package.name, result.package.ecosystem, osvLog).catch(() => [] as CVEEntry[]);
         const cveSeverity = computeCveSeverity(cves);
         onOsvResult({ ...result, cves, cveSeverity });
       })
