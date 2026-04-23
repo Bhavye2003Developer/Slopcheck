@@ -158,6 +158,11 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 | Google Search Console | `metadata.verification.google` in `layout.tsx` renders verification meta tag |
 | README | Full project README: what it does, supported formats, how it works, all 10 public APIs, tech stack, features, local dev instructions, "Built with Claude Code" |
 | Mobile responsiveness | All scanner components responsive; Tailwind purge bug fixed in LiveStats; short progress bar on mobile |
+| Typosquat detection | Edit-distance-1 candidate generation; download-count comparison via npm/PyPI APIs; threshold 10K/mo + 10× ratio; skip if pkg ≥50K/mo |
+| Dependency diff | Side-by-side BEFORE/AFTER manifest comparison; categorizes added/removed/escalated/improved/stable; parallel scan; horizontally scrollable on mobile |
+| CI badge + GitHub Actions | shields.io badge URL from live scan results; inline Node.js GitHub Actions YAML for PR checks; one-click copy |
+| Threat score dial | Animated SVG semi-circle gauge (0–100); green→yellow→red gradient fill; eased count-up on scan complete; score = critical×25 + high×8 + medium×2 |
+| SARIF export | SLOP001–SLOP008 rules; error/warning/note levels; CVE entries as individual results; downloads as .sarif for GitHub code scanning |
 
 ---
 
@@ -165,9 +170,6 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 
 | Feature | Notes |
 |---|---|
-| Typosquat detection | Dynamic: generate edit-distance-1 candidates per package name, fetch their download counts, flag if candidate has 1000x more downloads. No hardcoded list. |
-| Threat score dial | Animated gauge (0–100) counting up after scan — screenshot-worthy reveal moment |
-| Badge generator | `![Slop Check](...)` shield badge for READMEs — viral growth loop |
 | Error states | Registry timeout, rate-limit 429, malformed response UI feedback |
 | Favicon | Custom terminal-aesthetic favicon in `app/` |
 | `output: 'export'` | Vercel static deploy config in `next.config.ts` |
