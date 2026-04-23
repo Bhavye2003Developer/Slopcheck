@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, startTransition } from 'react';
 
 const links = [
   { label: '[01] PROBLEM', href: '#problem' },
@@ -8,6 +8,76 @@ const links = [
   { label: '[03] HOW', href: '#how' },
   { label: '[04] FAQ', href: '#faq' },
 ];
+
+interface NetInfo {
+  online: boolean;
+  type: string;
+  rtt: number | null;
+  downlink: number | null;
+}
+
+function NetworkMeter() {
+  const [info, setInfo] = useState<NetInfo | null>(null);
+
+  useEffect(() => {
+    function read() {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const conn = (navigator as any).connection ?? (navigator as any).mozConnection ?? (navigator as any).webkitConnection;
+      startTransition(() => setInfo({
+        online: navigator.onLine,
+        type: (conn?.effectiveType as string | undefined)?.toUpperCase() ?? '',
+        rtt: typeof conn?.rtt === 'number' ? conn.rtt : null,
+        downlink: typeof conn?.downlink === 'number' ? conn.downlink : null,
+      }));
+    }
+
+    read();
+    window.addEventListener('online', read);
+    window.addEventListener('offline', read);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const conn = (navigator as any).connection;
+    conn?.addEventListener('change', read);
+    return () => {
+      window.removeEventListener('online', read);
+      window.removeEventListener('offline', read);
+      conn?.removeEventListener('change', read);
+    };
+  }, []);
+
+  if (!info) return null;
+
+  const dotColor = info.online ? '#00cc66' : '#ff4444';
+
+  return (
+    <div className="flex items-center gap-1.5 text-xs" style={{ color: '#444' }}>
+      <span
+        style={{
+          display: 'inline-block',
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: dotColor,
+          boxShadow: info.online ? `0 0 6px ${dotColor}` : 'none',
+          flexShrink: 0,
+        }}
+      />
+      <span className="font-bold" style={{ color: dotColor, letterSpacing: '0.05em' }}>
+        {info.online ? 'LIVE' : 'OFFLINE'}
+      </span>
+      {info.type && (
+        <span style={{ color: '#3a3a3a' }}>{info.type}</span>
+      )}
+      {info.rtt !== null && info.rtt > 0 && (
+        <span className="hidden sm:inline" style={{ color: '#333' }}>{info.rtt}ms</span>
+      )}
+      {info.downlink !== null && info.downlink > 0 && (
+        <span className="hidden lg:inline" style={{ color: '#2a2a2a' }}>
+          {info.downlink >= 10 ? `${Math.round(info.downlink)}Mbps` : `${info.downlink.toFixed(1)}Mbps`}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -28,38 +98,43 @@ export default function Nav() {
         backdropFilter: scrolled || menuOpen ? 'blur(8px)' : 'none',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
-        <span className="text-sm font-bold tracking-widest" style={{ color: 'var(--fg)' }}>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
+        <span className="text-sm font-bold tracking-widest shrink-0" style={{ color: 'var(--fg)' }}>
           SLOPCHECK.
         </span>
 
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8">
-          {links.map(l => (
-            <a key={l.href} href={l.href} className="text-xs tracking-wider transition-colors"
-              style={{ color: 'var(--muted)' }}
+        {/* Network meter — center, visible at all sizes */}
+        <NetworkMeter />
+
+        <div className="flex items-center">
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-8">
+            {links.map(l => (
+              <a key={l.href} href={l.href} className="text-xs tracking-wider transition-colors"
+                style={{ color: 'var(--muted)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+                {l.label}
+              </a>
+            ))}
+            <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
+              className="text-xs tracking-wider transition-colors" style={{ color: 'var(--muted)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
-              {l.label}
+              GITHUB →
             </a>
-          ))}
-          <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
-            className="text-xs tracking-wider transition-colors" style={{ color: 'var(--muted)' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
-            GITHUB →
-          </a>
-        </div>
+          </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden text-xs tracking-widest p-2"
-          style={{ color: 'var(--muted)' }}
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? '✕ CLOSE' : '☰ MENU'}
-        </button>
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden text-xs tracking-widest p-2"
+            style={{ color: 'var(--muted)' }}
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? '✕ CLOSE' : '☰ MENU'}
+          </button>
+        </div>
       </div>
 
       {/* Mobile dropdown */}
