@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import type { EcosystemHint } from '@/lib/parsers';
 import { detectEcosystem, ECOSYSTEM_META } from '@/lib/parsers';
 
@@ -22,6 +22,8 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
   const [content, setContent] = useState('');
   const [ecosystem, setEcosystem] = useState<EcosystemHint>('auto');
   const [includeDevDeps, setIncludeDevDeps] = useState(true);
+  const pasteFlag = useRef(false);
+
   const detected = useMemo<string | null>(() => {
     if (!content.trim() || ecosystem !== 'auto') return null;
     const eco = detectEcosystem(content);
@@ -34,11 +36,19 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
     onScan(text, ecosystem, includeDevDeps);
   }
 
-  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
-    const text = e.clipboardData.getData('text');
-    if (!text.trim()) return;
-    // debounce: let React update content state first, then scan
-    setTimeout(() => handleScan(text), 300);
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value;
+    setContent(val);
+    if (pasteFlag.current) {
+      pasteFlag.current = false;
+      setTimeout(() => {
+        if (val.trim() && !loading) onScan(val, ecosystem, includeDevDeps);
+      }, 100);
+    }
+  }
+
+  function handlePaste() {
+    pasteFlag.current = true;
   }
 
   return (
@@ -66,7 +76,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
       {/* Textarea */}
       <textarea
         value={content}
-        onChange={e => setContent(e.target.value)}
+        onChange={handleChange}
         onPaste={handlePaste}
         placeholder={'Paste contents here...\n\ne.g. package.json, requirements.txt, go.mod'}
         rows={10}
