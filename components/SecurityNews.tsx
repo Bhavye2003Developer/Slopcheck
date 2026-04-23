@@ -9,6 +9,7 @@ interface NewsItem {
   url: string;
   date: string;
   type: 'CVE' | 'NEWS';
+  source: string;
   badge: string;
   badgeColor: string;
 }
@@ -64,6 +65,7 @@ function parseCves(data: { vulnerabilities?: RawVuln[] }): NewsItem[] {
         url: `https://nvd.nist.gov/vuln/detail/${cve.id}`,
         date: cve.published,
         type: 'CVE' as const,
+        source: 'NVD',
         badge: severity + (score !== null ? ` ${score.toFixed(1)}` : ''),
         badgeColor: SEV_COLOR[severity] ?? '#888',
       }];
@@ -81,6 +83,7 @@ function parseHnStories(data: { hits?: HnHit[] }): NewsItem[] {
       url: h.url!,
       date: h.created_at,
       type: 'NEWS' as const,
+      source: 'HN',
       badge: 'HN',
       badgeColor: '#ff6600',
     }))
@@ -195,13 +198,13 @@ export default function SecurityNews() {
                 onMouseEnter={e => (e.currentTarget.style.background = '#0f0f0f')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#060606')}
               >
-                {/* Row 1: source tag · badge · label · age · arrow */}
+                {/* Row 1: source · badge · label · age · arrow */}
                 <div className="flex items-baseline gap-2 mb-1 min-w-0">
                   <span
                     className="shrink-0 font-bold"
-                    style={{ color: item.type === 'CVE' ? '#444' : '#ff6600', fontSize: 9, letterSpacing: '0.05em' }}
+                    style={{ color: item.type === 'CVE' ? '#888' : '#ff6600', fontSize: 9, letterSpacing: '0.05em' }}
                   >
-                    [{item.type}]
+                    [{item.source}]
                   </span>
                   <span className="shrink-0 font-bold" style={{ color: item.badgeColor }}>
                     {item.badge}
