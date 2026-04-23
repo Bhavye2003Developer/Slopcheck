@@ -159,6 +159,86 @@ function downloadFile(content: string, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
+function buildSarif(results: ScanResult[]): string {
+  type SarifLevel = 'error' | 'warning' | 'note';
+
+  const FLAG_RULES: Record<FlagType, { id: string; name: string; description: string }> = {
+    nonexistent:        { id: 'SLOP001', name: 'PackageNotFound',        description: 'Package not found in registry — may be hallucinated or removed.' },
+    typosquat:          { id: 'SLOP002', name: 'PossibleTyposquat',      description: 'Package name closely resembles a popular package — possible typosquat.' },
+    suspicious_script:  { id: 'SLOP003', name: 'SuspiciousInstallScript',description: 'Post-install script contains potentially dangerous commands.' },
+    recently_registered:{ id: 'SLOP004', name: 'RecentlyRegistered',     description: 'Package was registered within the last 30 days.' },
+    low_downloads:      { id: 'SLOP005', name: 'LowDownloads',           description: 'Package has very few monthly downloads — low community trust signal.' },
+    low_adoption_latest:{ id: 'SLOP006', name: 'LowAdoptionLatest',      description: 'Latest version has low adoption — pinned version may be more stable.' },
+    outdated:           { id: 'SLOP007', name: 'OutdatedVersion',         description: 'A newer version of this package is available.' },
+    has_cve_critical:   { id: 'SLOP008', name: 'KnownVulnerability',     description: 'Package has known critical CVE(s) from OSV.dev.' },
+    has_cve_high:       { id: 'SLOP008', name: 'KnownVulnerability',     description: 'Package has known high-severity CVE(s) from OSV.dev.' },
+    has_cve_medium:     { id: 'SLOP008', name: 'KnownVulnerability',     description: 'Package has known CVE(s) from OSV.dev.' },
+    clean:              { id: 'SLOP000', name: 'Clean',                   description: 'No issues detected.' },
+    unsupported:        { id: 'SLOP000', name: 'Unsupported',             description: 'Ecosystem check not fully supported.' },
+  };
+
+  const SEVERITY_LEVEL: Record<Severity, SarifLevel> = {
+    critical: 'error', high: 'error', medium: 'warning', clean: 'note', unsupported: 'note',
+  };
+
+  const ECOSYSTEM_FILE: Record<string, string> = {
+    npm: 'package.json', pypi: 'requirements.txt', rubygems: 'Gemfile', go: 'go.mod', cargo: 'Cargo.toml',
+  };
+
+  const flagged = results.filter(r => r.severity !== 'clean' && r.severity !== 'unsupported');
+
+  // Deduplicated rules
+  const rulesMap = new Map<string, { id: string; name: string; shortDescription: { text: string }; defaultConfiguration: { level: string }; helpUri: string }>();
+  for (const r of flagged) {
+    const rule = FLAG_RULES[r.flag];
+    if (!rulesMap.has(rule.id)) {
+      rulesMap.set(rule.id, { id: rule.id, name: rule.name, shortDescription: { text: rule.description }, defaultConfiguration: { level: 'warning' }, helpUri: 'https://slopcheck.com' });
+    }
+  }
+  if (results.some(r => (r.cves?.length ?? 0) > 0) && !rulesMap.has('SLOP008')) {
+    rulesMap.set('SLOP008', { id: 'SLOP008', name: 'KnownVulnerability', shortDescription: { text: 'Package has known CVE(s) from OSV.dev.' }, defaultConfiguration: { level: 'error' }, helpUri: 'https://slopcheck.com' });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sarifResults: any[] = [];
+
+  for (const r of flagged) {
+    const file = ECOSYSTEM_FILE[r.package.ecosystem] ?? 'manifest.txt';
+    sarifResults.push({
+      ruleId: FLAG_RULES[r.flag].id,
+      level: SEVERITY_LEVEL[r.severity],
+      message: { text: r.reason },
+      locations: [{ physicalLocation: { artifactLocation: { uri: file, uriBaseId: '%SRCROOT%' }, region: { startLine: 1 } }, logicalLocations: [{ name: r.package.name, kind: 'package', fullyQualifiedName: r.package.version ? `${r.package.name}@${r.package.version}` : r.package.name }] }],
+    });
+  }
+
+  for (const r of results) {
+    if (!r.cves?.length) continue;
+    const file = ECOSYSTEM_FILE[r.package.ecosystem] ?? 'manifest.txt';
+    for (const cve of r.cves) {
+      const msg = [cve.id, cve.summary, cve.fixedIn ? `Fixed in ${cve.fixedIn}` : ''].filter(Boolean).join(' — ');
+      sarifResults.push({
+        ruleId: 'SLOP008',
+        level: SEVERITY_LEVEL[r.severity] as SarifLevel,
+        message: { text: msg },
+        locations: [{ physicalLocation: { artifactLocation: { uri: file, uriBaseId: '%SRCROOT%' }, region: { startLine: 1 } }, logicalLocations: [{ name: r.package.name, kind: 'package', fullyQualifiedName: r.package.version ? `${r.package.name}@${r.package.version}` : r.package.name }] }],
+      });
+    }
+  }
+
+  const artifactUris = [...new Set(results.map(r => ECOSYSTEM_FILE[r.package.ecosystem] ?? 'manifest.txt'))];
+
+  return JSON.stringify({
+    $schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+    version: '2.1.0',
+    runs: [{
+      tool: { driver: { name: 'Slop Check', version: '1.0.0', informationUri: 'https://slopcheck.com', rules: [...rulesMap.values()].sort((a, b) => a.id.localeCompare(b.id)) } },
+      results: sarifResults,
+      artifacts: artifactUris.map(uri => ({ location: { uri, uriBaseId: '%SRCROOT%' } })),
+    }],
+  }, null, 2);
+}
+
 function buildBadgeUrl(critical: number, high: number, medium: number, clean: number): string {
   const color = critical > 0 ? 'red' : high > 0 ? 'orange' : medium > 0 ? 'yellow' : 'brightgreen';
   const parts: string[] = [];
@@ -233,6 +313,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
   const [ciOpen, setCiOpen] = useState(false);
   const [badgeCopied, setBadgeCopied] = useState(false);
   const [yamlCopied, setYamlCopied] = useState(false);
+  const [sarifCopied, setSarifCopied] = useState(false);
 
   function copyPkg(name: string, version: string | null) {
     const text = version ? `${name}@${version}` : name;
@@ -360,6 +441,12 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
     downloadFile(JSON.stringify(results, null, 2), 'slopcheck-results.json', 'application/json');
   }
 
+  function exportSarif() {
+    downloadFile(buildSarif(results), 'slopcheck-results.sarif', 'application/json');
+    setSarifCopied(true);
+    setTimeout(() => setSarifCopied(false), 2000);
+  }
+
   function exportText() {
     const lines = results.map(r => {
       const ver = r.package.version ? `@${r.package.version}` : '';
@@ -447,6 +534,16 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
               onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             >
               TXT
+            </button>
+            <button
+              onClick={exportSarif}
+              className="text-xs tracking-widest px-3 py-2 transition-colors"
+              style={{ border: `1px solid ${sarifCopied ? 'var(--clean)' : 'var(--border)'}`, color: sarifCopied ? 'var(--clean)' : 'var(--fg)' }}
+              onMouseEnter={e => { if (!sarifCopied) e.currentTarget.style.borderColor = 'var(--fg)'; }}
+              onMouseLeave={e => { if (!sarifCopied) e.currentTarget.style.borderColor = sarifCopied ? 'var(--clean)' : 'var(--border)'; }}
+              title="Export SARIF — upload to GitHub code scanning"
+            >
+              {sarifCopied ? 'SAVED!' : 'SARIF'}
             </button>
             <button
               onClick={shareReport}
