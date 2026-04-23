@@ -11,9 +11,6 @@ const links = [
 
 interface NetInfo {
   online: boolean;
-  type: string;
-  rtt: number | null;
-  downlink: number | null;
 }
 
 function NetworkMeter() {
@@ -21,26 +18,15 @@ function NetworkMeter() {
 
   useEffect(() => {
     function read() {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const conn = (navigator as any).connection ?? (navigator as any).mozConnection ?? (navigator as any).webkitConnection;
-      startTransition(() => setInfo({
-        online: navigator.onLine,
-        type: (conn?.effectiveType as string | undefined)?.toUpperCase() ?? '',
-        rtt: typeof conn?.rtt === 'number' ? conn.rtt : null,
-        downlink: typeof conn?.downlink === 'number' ? conn.downlink : null,
-      }));
+      startTransition(() => setInfo({ online: navigator.onLine }));
     }
 
     read();
     window.addEventListener('online', read);
     window.addEventListener('offline', read);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const conn = (navigator as any).connection;
-    conn?.addEventListener('change', read);
     return () => {
       window.removeEventListener('online', read);
       window.removeEventListener('offline', read);
-      conn?.removeEventListener('change', read);
     };
   }, []);
 
@@ -49,7 +35,7 @@ function NetworkMeter() {
   const dotColor = info.online ? '#00cc66' : '#ff4444';
 
   return (
-    <div className="flex items-center gap-1.5 text-xs" style={{ color: '#444' }}>
+    <div className="flex items-center gap-1.5 text-xs">
       <span
         style={{
           display: 'inline-block',
@@ -64,17 +50,6 @@ function NetworkMeter() {
       <span className="font-bold" style={{ color: dotColor, letterSpacing: '0.05em' }}>
         {info.online ? 'LIVE' : 'OFFLINE'}
       </span>
-      {info.type && (
-        <span style={{ color: '#3a3a3a' }}>{info.type}</span>
-      )}
-      {info.rtt !== null && info.rtt > 0 && (
-        <span className="hidden sm:inline" style={{ color: '#333' }}>{info.rtt}ms</span>
-      )}
-      {info.downlink !== null && info.downlink > 0 && (
-        <span className="hidden lg:inline" style={{ color: '#2a2a2a' }}>
-          {info.downlink >= 10 ? `${Math.round(info.downlink)}Mbps` : `${info.downlink.toFixed(1)}Mbps`}
-        </span>
-      )}
     </div>
   );
 }
