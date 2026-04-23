@@ -55,7 +55,21 @@ export default function NetworkTrail({ events }: NetworkTrailProps) {
               <span className="shrink-0 w-28" style={{ color: 'var(--muted)' }}>{e.label}</span>
 
               {/* URL */}
-              <span className="flex-1 truncate" style={{ color: 'var(--fg)', opacity: 0.6 }}>{e.url}</span>
+              {e.url.startsWith('http') ? (
+                <a
+                  href={e.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 truncate"
+                  style={{ color: 'var(--fg)', opacity: 0.6, textDecoration: 'none' }}
+                  onMouseEnter={ev => (ev.currentTarget.style.opacity = '1')}
+                  onMouseLeave={ev => (ev.currentTarget.style.opacity = '0.6')}
+                >
+                  {e.url}
+                </a>
+              ) : (
+                <span className="flex-1 truncate" style={{ color: 'var(--fg)', opacity: 0.6 }}>{e.url}</span>
+              )}
 
               {/* Timing */}
               {e.ms !== undefined && (
