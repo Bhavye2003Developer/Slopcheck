@@ -68,7 +68,7 @@ function parseCves(data: { vulnerabilities?: RawVuln[] }): NewsItem[] {
         badgeColor: SEV_COLOR[severity] ?? '#888',
       }];
     })
-    .slice(0, 5);
+    .slice(0, 10);
 }
 
 function parseHnStories(data: { hits?: HnHit[] }): NewsItem[] {
@@ -84,7 +84,7 @@ function parseHnStories(data: { hits?: HnHit[] }): NewsItem[] {
       badge: 'HN',
       badgeColor: '#ff6600',
     }))
-    .slice(0, 5);
+    .slice(0, 10);
 }
 
 function Skeleton() {
@@ -98,6 +98,7 @@ function Skeleton() {
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <p className="text-xs tracking-widest" style={{ color: 'var(--critical)' }}>THREAT INTEL</p>
           <span className="text-xs" style={{ color: '#333' }}>· fetching...</span>
+          <span className="text-xs px-2 py-0.5 tracking-widest font-bold" style={{ border: '1px solid #00cc66', color: '#00cc66' }}>LIVE</span>
         </div>
         <div style={{ border: '1px solid var(--border)' }}>
           {[70, 55, 80, 45].map((w, i) => (
@@ -139,7 +140,7 @@ export default function SecurityNews() {
       const news = hnRes.status === 'fulfilled' ? parseHnStories(hnRes.value) : [];
       const merged = [...cves, ...news]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 8);
+        .slice(0, 20);
       startTransition(() => {
         setItems(merged);
         setLoading(false);
@@ -161,14 +162,22 @@ export default function SecurityNews() {
           <p className="text-xs tracking-widest" style={{ color: 'var(--critical)' }}>THREAT INTEL</p>
           <span className="text-xs" style={{ color: '#333' }}>· recent CVEs + security incidents</span>
           <span
-            className="text-xs px-2 py-0.5 tracking-widest"
-            style={{ border: '1px solid #2a2a2a', color: '#444' }}
+            className="text-xs px-2 py-0.5 tracking-widest font-bold"
+            style={{ border: '1px solid #00cc66', color: '#00cc66' }}
           >
             LIVE
           </span>
         </div>
 
-        <div style={{ border: '1px solid var(--border)' }}>
+        <div
+          style={{
+            border: '1px solid var(--border)',
+            maxHeight: 480,
+            overflowY: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#2a2a2a transparent',
+          }}
+        >
           {items.map((item, i) => {
             const isLast = i === items.length - 1;
             return (
