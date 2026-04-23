@@ -108,6 +108,21 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 
 ---
 
+## Phase 10 — Mobile Responsiveness ✅
+
+- [x] **ScanCharts rings** — ring SVG + legend `flexShrink: 1` with `minWidth` guards; no overflow on narrow screens
+- [x] **ScanCharts scatter** — `overflowX: auto` wrapper + `width: max(100%, 600px)` on SVG; horizontally scrollable on mobile; title shortened
+- [x] **NetworkTrail columns** — package col `w-24 md:w-32`, label col `w-20 md:w-28` with `truncate`; no horizontal overflow
+- [x] **ResultsTable metadata row** — `gap-x-3 md:gap-x-5`; tighter on mobile
+- [x] **ResultsTable CVE IDs** — `break-all` on CVE anchor; long OSV/NVD IDs wrap instead of overflow
+- [x] **ScanProgress bar** — 10-block bar on `<sm`, full 20-block bar on `sm+`; row wraps via `flex-wrap`
+- [x] **LiveStats grid** — fixed dynamic `grid-cols-${n}` Tailwind purge bug; replaced with static class lookup (`md:grid-cols-1/2/3`)
+- [x] **Hero** — already responsive (`text-4xl md:text-8xl`, `md:grid-cols-2`, `flex-wrap` badge row)
+- [x] **Nav** — already responsive (hamburger menu on mobile, `gap-4` spacing)
+- [x] **ScanInput** — already responsive (`flex-wrap` title bar, `maxWidth` detected badge)
+
+---
+
 ## Extra Features (Beyond Original Design Doc)
 
 | Feature | Detail |
@@ -142,6 +157,7 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 | Sitemap | `app/sitemap.ts` — auto-serves `/sitemap.xml`; covers root + all 5 anchor sections with priorities and change frequencies |
 | Google Search Console | `metadata.verification.google` in `layout.tsx` renders verification meta tag |
 | README | Full project README: what it does, supported formats, how it works, all 10 public APIs, tech stack, features, local dev instructions, "Built with Claude Code" |
+| Mobile responsiveness | All scanner components responsive; Tailwind purge bug fixed in LiveStats; short progress bar on mobile |
 
 ---
 
