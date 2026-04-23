@@ -7,6 +7,7 @@ import ScanProgress from './scanner/ScanProgress';
 import ResultsTable from './scanner/ResultsTable';
 import NetworkTrail from './scanner/NetworkTrail';
 import DiffScanner from './scanner/DiffScanner';
+import ThreatDial from './scanner/ThreatDial';
 import { detectAndParse } from '@/lib/parsers';
 import { runScan } from '@/lib/scanner';
 import type { ScanResult, NetworkEvent, Severity } from '@/lib/types';
@@ -140,6 +141,10 @@ export default function ScannerSection() {
           <p className="mt-4 text-xs tracking-widest" style={{ color: 'var(--critical)' }}>
             {error}
           </p>
+        )}
+
+        {!scanning && results.length > 0 && (
+          <ThreatDial results={results} />
         )}
 
         {results.length > 0 && (
