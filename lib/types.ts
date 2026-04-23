@@ -14,6 +14,7 @@ export type NetworkLogger = (event: NetworkEvent) => void;
 
 export type FlagType =
   | 'nonexistent'
+  | 'typosquat'
   | 'recently_registered'
   | 'low_downloads'
   | 'suspicious_script'

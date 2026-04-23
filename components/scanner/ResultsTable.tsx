@@ -9,6 +9,7 @@ import type { FlagType } from '@/lib/types';
 
 const FLAG_LABEL: Partial<Record<FlagType, string>> = {
   nonexistent: '❌ NOT FOUND',
+  typosquat: '🎭 TYPOSQUAT',
   recently_registered: '⚠️  NEW PKG',
   low_downloads: '⚠️  LOW DL',
   suspicious_script: '⚠️  MALICIOUS',
@@ -158,11 +159,80 @@ function downloadFile(content: string, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
+function buildBadgeUrl(critical: number, high: number, medium: number, clean: number): string {
+  const color = critical > 0 ? 'red' : high > 0 ? 'orange' : medium > 0 ? 'yellow' : 'brightgreen';
+  const parts: string[] = [];
+  if (critical > 0) parts.push(`${critical}_critical`);
+  if (high > 0) parts.push(`${high}_high`);
+  if (medium > 0) parts.push(`${medium}_med`);
+  if (parts.length === 0) parts.push('all_clear');
+  const msg = parts.join('_·_');
+  return `https://img.shields.io/badge/slop__check-${msg}-${color}?style=flat-square`;
+}
+
+function buildGhYaml(): string {
+  return `name: Slop Check
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'requirements.txt'
+      - 'go.mod'
+      - 'Cargo.toml'
+
+jobs:
+  slopcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Slop Check — dependency audit
+        run: |
+          node --input-type=module << 'SLOPEOF'
+          import { readFileSync } from 'fs';
+          import { existsSync } from 'fs';
+
+          if (!existsSync('package.json')) { console.log('No package.json found, skipping.'); process.exit(0); }
+
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+          const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+          const names = Object.keys(deps);
+          console.log(\`Checking \${names.length} packages via Slop Check...\`);
+
+          const results = await Promise.allSettled(names.map(async name => {
+            const encoded = name.startsWith('@') ? name.replace('/', '%2F') : name;
+            const [reg, dl] = await Promise.all([
+              fetch(\`https://registry.npmjs.org/\${encoded}\`).then(r => r.ok ? r.json() : null).catch(() => null),
+              fetch(\`https://api.npmjs.org/downloads/point/last-month/\${encoded}\`).then(r => r.ok ? r.json() : null).catch(() => null),
+            ]);
+            if (!reg?.name) return { name, level: 'CRITICAL', msg: 'not found on registry' };
+            const age = reg.time?.created ? (Date.now() - new Date(reg.time.created).getTime()) / 86400000 : Infinity;
+            if (age < 30) return { name, level: 'HIGH', msg: \`registered \${Math.floor(age)} days ago\` };
+            if (dl?.downloads !== undefined && dl.downloads < 500) return { name, level: 'MEDIUM', msg: \`\${dl.downloads}/mo downloads\` };
+            return null;
+          }));
+
+          const flags = results.filter(r => r.status === 'fulfilled' && r.value).map(r => (r as PromiseFulfilledResult<unknown>).value as { name: string; level: string; msg: string });
+          if (flags.length === 0) { console.log('✅  All packages passed.'); process.exit(0); }
+          console.error(\`\\n⚠️  \${flags.length} package(s) flagged:\\n\`);
+          for (const f of flags) console.error(\`  [\${f.level}] \${f.name}: \${f.msg}\`);
+          console.error('\\nFull scan: https://slopcheck.com\\n');
+          process.exit(1);
+          SLOPEOF`;
+}
+
 export default function ResultsTable({ results, scanning = false, scanMs }: ResultsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<ChartFilter>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [copiedPkg, setCopiedPkg] = useState<string | null>(null);
+  const [ciOpen, setCiOpen] = useState(false);
+  const [badgeCopied, setBadgeCopied] = useState(false);
+  const [yamlCopied, setYamlCopied] = useState(false);
 
   function copyPkg(name: string, version: string | null) {
     const text = version ? `${name}@${version}` : name;
@@ -359,7 +429,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
           )}
         </p>
         {!scanning && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={exportJson}
               className="text-xs tracking-widest px-3 py-2 transition-colors"
@@ -387,9 +457,65 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
             >
               {shareCopied ? 'COPIED!' : 'SHARE →'}
             </button>
+            <button
+              onClick={() => setCiOpen(o => !o)}
+              className="text-xs tracking-widest px-3 py-2 transition-colors"
+              style={{ border: `1px solid ${ciOpen ? 'var(--fg)' : 'var(--border)'}`, color: 'var(--fg)' }}
+            >
+              {ciOpen ? 'CI SETUP ▲' : 'CI SETUP ▼'}
+            </button>
           </div>
         )}
       </div>
+
+      {/* CI Setup panel */}
+      {!scanning && ciOpen && (() => {
+        const { critical, high, medium, clean: cleanCount } = buildSummary(results);
+        const badgeUrl = buildBadgeUrl(critical, high, medium, cleanCount);
+        const badgeMd = `[![Slop Check](${badgeUrl})](https://slopcheck.com)`;
+        const yaml = buildGhYaml();
+        function copySnippet(text: string, setCopied: (v: boolean) => void) {
+          navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+        }
+        return (
+          <div className="mt-3 text-xs" style={{ border: '1px solid var(--border)', background: '#0a0a0a' }}>
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+              <p className="tracking-widest mb-2" style={{ color: 'var(--muted)' }}>README BADGE</p>
+              <div className="flex items-center gap-3">
+                <code className="flex-1 truncate text-xs" style={{ color: 'var(--fg)', opacity: 0.7 }}>{badgeMd}</code>
+                <button
+                  onClick={() => copySnippet(badgeMd, setBadgeCopied)}
+                  className="shrink-0 px-3 py-1 text-xs tracking-widest transition-colors"
+                  style={{ border: '1px solid var(--border)', color: badgeCopied ? 'var(--clean)' : 'var(--muted)' }}
+                >
+                  {badgeCopied ? 'COPIED!' : 'COPY'}
+                </button>
+              </div>
+              <div className="mt-2">
+                {/* Badge preview */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={badgeUrl} alt="Slop Check badge preview" style={{ height: 20 }} />
+              </div>
+            </div>
+            <div className="px-4 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="tracking-widest" style={{ color: 'var(--muted)' }}>GITHUB ACTIONS</p>
+                <button
+                  onClick={() => copySnippet(yaml, setYamlCopied)}
+                  className="shrink-0 px-3 py-1 text-xs tracking-widest transition-colors"
+                  style={{ border: '1px solid var(--border)', color: yamlCopied ? 'var(--clean)' : 'var(--muted)' }}
+                >
+                  {yamlCopied ? 'COPIED!' : 'COPY'}
+                </button>
+              </div>
+              <pre
+                className="text-xs leading-relaxed overflow-x-auto"
+                style={{ color: 'var(--fg)', opacity: 0.7, maxHeight: 200, overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: 10 }}
+              >{yaml}</pre>
+            </div>
+          </div>
+        );
+      })()}
 
       <ScanCharts results={results} scanning={scanning} filter={filter} onFilter={setFilter} />
 

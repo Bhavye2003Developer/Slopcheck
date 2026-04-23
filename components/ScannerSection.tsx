@@ -6,6 +6,7 @@ import ScanInput from './scanner/ScanInput';
 import ScanProgress from './scanner/ScanProgress';
 import ResultsTable from './scanner/ResultsTable';
 import NetworkTrail from './scanner/NetworkTrail';
+import DiffScanner from './scanner/DiffScanner';
 import { detectAndParse } from '@/lib/parsers';
 import { runScan } from '@/lib/scanner';
 import type { ScanResult, NetworkEvent, Severity } from '@/lib/types';
@@ -14,6 +15,7 @@ import type { EcosystemHint } from '@/lib/parsers';
 const SEVERITY_ORDER: Record<Severity, number> = { critical: 0, high: 1, medium: 2, clean: 3, unsupported: 4 };
 
 export default function ScannerSection() {
+  const [mode, setMode] = useState<'scan' | 'diff'>('scan');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [results, setResults] = useState<ScanResult[]>([]);
@@ -104,10 +106,30 @@ export default function ScannerSection() {
         <p className="text-xs tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
           SCAN YOUR MANIFEST
         </p>
-        <h2 className="text-2xl md:text-4xl font-bold tracking-tight mb-8 md:mb-10">
-          PASTE. SCAN.<br />FIND OUT.
-        </h2>
+        <div className="flex items-end justify-between mb-8 md:mb-10 flex-wrap gap-4">
+          <h2 className="text-2xl md:text-4xl font-bold tracking-tight">
+            PASTE. SCAN.<br />FIND OUT.
+          </h2>
+          {/* Mode toggle */}
+          <div className="flex text-xs tracking-widest" style={{ border: '1px solid var(--border)' }}>
+            {(['scan', 'diff'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className="px-4 py-2 transition-colors"
+                style={{
+                  background: mode === m ? 'var(--fg)' : 'transparent',
+                  color: mode === m ? 'var(--bg)' : 'var(--muted)',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                {m === 'scan' ? 'SCAN' : 'DIFF'}
+              </button>
+            ))}
+          </div>
+        </div>
 
+        {mode === 'diff' ? <DiffScanner /> : <>
         <ScanInput onScan={handleScan} loading={loading} />
 
         {scanning && progress && (
@@ -146,6 +168,7 @@ export default function ScannerSection() {
         )}
 
         <NetworkTrail events={networkEvents} />
+        </>}
       </div>
     </section>
   );
