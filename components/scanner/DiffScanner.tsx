@@ -203,12 +203,13 @@ export default function DiffScanner() {
             <span>{diff.length} total packages</span>
           </p>
 
-          {/* Table */}
-          <div style={{ border: '1px solid var(--border)', maxHeight: '500px', overflowY: 'auto' }}>
+          {/* Table — horizontally scrollable on mobile */}
+          <div style={{ border: '1px solid var(--border)', maxHeight: '500px', overflowY: 'auto', overflowX: 'auto' }}>
+            <div style={{ minWidth: 480 }}>
             {/* Header */}
             <div
               className="grid text-xs tracking-widest px-3 py-2 border-b"
-              style={{ gridTemplateColumns: '100px 1fr 100px 100px', borderColor: 'var(--border)', background: '#111', color: 'var(--muted)', position: 'sticky', top: 0 }}
+              style={{ gridTemplateColumns: '90px 1fr 80px 80px', borderColor: 'var(--border)', background: '#111', color: 'var(--muted)', position: 'sticky', top: 0 }}
             >
               <span>STATUS</span>
               <span>PACKAGE</span>
@@ -220,12 +221,12 @@ export default function DiffScanner() {
               <div
                 key={i}
                 className="grid items-center text-xs px-3 py-2 border-b"
-                style={{ gridTemplateColumns: '100px 1fr 100px 100px', borderColor: 'var(--border)', background: row.status === 'stable' ? 'transparent' : undefined }}
+                style={{ gridTemplateColumns: '90px 1fr 80px 80px', borderColor: 'var(--border)' }}
               >
                 <span className="font-bold tracking-widest" style={{ color: STATUS_COLOR[row.status] }}>
                   {STATUS_LABEL[row.status]}
                 </span>
-                <span style={{ color: 'var(--fg)' }}>
+                <span className="truncate" style={{ color: 'var(--fg)' }}>
                   {row.name}
                   <span style={{ color: 'var(--muted)', fontSize: 10, marginLeft: 4 }}>
                     {row.after?.package.version ?? row.before?.package.version ?? ''}
@@ -239,6 +240,7 @@ export default function DiffScanner() {
                 </span>
               </div>
             ))}
+            </div>
           </div>
         </div>
       )}
