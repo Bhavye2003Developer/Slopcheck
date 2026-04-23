@@ -186,6 +186,13 @@ function SeverityDonut({ results, active, onFilter }: { results: ScanResult[]; a
 
 function CveDonut({ results, active, onFilter }: { results: ScanResult[]; active: ChartFilter; onFilter: (f: ChartFilter) => void }) {
   const scanned = results.filter(r => r.cveSeverity !== undefined);
+  const scannable = results.filter(r => r.meta.exists);
+
+  if (scannable.length === 0) return (
+    <Card title="CVE EXPOSURE">
+      <p style={{ fontSize: 11, color: '#2a2a2a' }}>No packages to scan.</p>
+    </Card>
+  );
 
   if (scanned.length === 0) return (
     <Card title="CVE EXPOSURE">
