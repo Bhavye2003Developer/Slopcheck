@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "Slop Check - Scan AI-generated manifests for hallucinated packages",
   description:
     "Paste a package.json or requirements.txt. Slop Check hits npm and PyPI directly from your browser and returns a risk-ranked report in seconds.",
+  verification: {
+    google: 'R5nqWVB34piX3YudumT-Jp24Rzi8aJ5ISOUsyP8Njcw',
+  },
 };
 
 export default function RootLayout({
