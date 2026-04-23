@@ -8,6 +8,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://slopcheck.com'),
   title: "Slop Check - Scan AI-generated manifests for hallucinated packages",
   description:
     "Paste a package.json or requirements.txt. Slop Check hits npm and PyPI directly from your browser and returns a risk-ranked report in seconds.",
