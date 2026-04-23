@@ -49,10 +49,10 @@ export default function NetworkTrail({ events }: NetworkTrailProps) {
               )}
 
               {/* Package */}
-              <span className="shrink-0 w-32 truncate" style={{ color: 'var(--warning)' }}>{e.pkg}</span>
+              <span className="shrink-0 w-24 md:w-32 truncate" style={{ color: 'var(--warning)' }}>{e.pkg}</span>
 
               {/* Label */}
-              <span className="shrink-0 w-28" style={{ color: 'var(--muted)' }}>{e.label}</span>
+              <span className="shrink-0 w-20 md:w-28 truncate" style={{ color: 'var(--muted)' }}>{e.label}</span>
 
               {/* URL */}
               {e.url.startsWith('http') ? (

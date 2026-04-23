@@ -108,6 +108,7 @@ function CvePanel({ cves }: { cves: CVEEntry[] }) {
                 href={cveUrl(cve.id)}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="break-all"
                 style={{ color: 'var(--fg)', textDecorationLine: 'underline', textDecorationColor: '#444' }}
                 onMouseEnter={e => (e.currentTarget.style.textDecorationColor = 'var(--fg)')}
                 onMouseLeave={e => (e.currentTarget.style.textDecorationColor = '#444')}
@@ -241,7 +242,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
         </div>
         <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{r.reason}</p>
         {r.meta.exists && (
-          <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs">
+          <div className="flex flex-wrap gap-x-3 md:gap-x-5 gap-y-1 text-xs">
             <span style={{ color: '#888' }}>FILE <span style={{ color: 'var(--fg)' }}>{fileVer}</span></span>
             <span style={{ color: '#888' }}>
               LATEST{' '}
