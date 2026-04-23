@@ -20,6 +20,7 @@ export default function ScannerSection() {
   const [networkEvents, setNetworkEvents] = useState<NetworkEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [scanMs, setScanMs] = useState<number | null>(null);
   const [isSharedView, setIsSharedView] = useState(false);
   const [sharedDismissed, setSharedDismissed] = useState(false);
 
@@ -52,6 +53,8 @@ export default function ScannerSection() {
     setResults([]);
     setNetworkEvents([]);
     setProgress(null);
+    setScanMs(null);
+    const scanStart = Date.now();
 
     const packages = detectAndParse(content, ecosystem, includeDevDeps);
     if (packages.length === 0) {
@@ -85,6 +88,7 @@ export default function ScannerSection() {
     } catch {
       setError('Scan failed. Check your connection and try again.');
     } finally {
+      setScanMs(Date.now() - scanStart);
       setLoading(false);
       setScanning(false);
     }
@@ -137,7 +141,7 @@ export default function ScannerSection() {
                 </button>
               </div>
             )}
-            <ResultsTable results={results} scanning={scanning} />
+            <ResultsTable results={results} scanning={scanning} scanMs={scanMs ?? undefined} />
           </>
         )}
 

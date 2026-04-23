@@ -29,9 +29,16 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
     return `${meta.file} - ${meta.label}`;
   }, [content, ecosystem]);
 
-  function handleScan() {
-    if (!content.trim() || loading) return;
-    onScan(content, ecosystem, includeDevDeps);
+  function handleScan(text = content) {
+    if (!text.trim() || loading) return;
+    onScan(text, ecosystem, includeDevDeps);
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const text = e.clipboardData.getData('text');
+    if (!text.trim()) return;
+    // debounce: let React update content state first, then scan
+    setTimeout(() => handleScan(text), 300);
   }
 
   return (
@@ -60,6 +67,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
       <textarea
         value={content}
         onChange={e => setContent(e.target.value)}
+        onPaste={handlePaste}
         placeholder={'Paste contents here...\n\ne.g. package.json, requirements.txt, go.mod'}
         rows={10}
         className="w-full bg-transparent outline-none resize-none px-4 py-4 text-xs leading-relaxed"

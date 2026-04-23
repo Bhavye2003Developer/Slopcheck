@@ -52,6 +52,7 @@ const VULN_COLOR: Record<CveSeverity | 'PENDING' | 'UNKNOWN', string> = {
 interface ResultsTableProps {
   results: ScanResult[];
   scanning?: boolean;
+  scanMs?: number;
 }
 
 function buildSummary(results: ScanResult[]) {
@@ -156,12 +157,23 @@ function downloadFile(content: string, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
-export default function ResultsTable({ results, scanning = false }: ResultsTableProps) {
+export default function ResultsTable({ results, scanning = false, scanMs }: ResultsTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<ChartFilter>(null);
   const [shareCopied, setShareCopied] = useState(false);
+  const [copiedPkg, setCopiedPkg] = useState<string | null>(null);
+
+  function copyPkg(name: string, version: string | null) {
+    const text = version ? `${name}@${version}` : name;
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedPkg(name);
+      setTimeout(() => setCopiedPkg(null), 1500);
+    });
+  }
 
   if (results.length === 0) return null;
+
+  const allClean = !scanning && results.length > 0 && results.every(r => r.severity === 'clean');
 
   const displayed = results.filter(r => matchesFilter(r, filter));
   const { critical, high, medium, clean, cveCritical, cveHigh, totalCves, cveClean } = buildSummary(results);
@@ -204,6 +216,16 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
                 <span style={{ color: 'var(--muted)', fontWeight: 'normal' }}>@{r.package.version}</span>
               )}
             </span>
+            <button
+              onClick={() => copyPkg(r.package.name, r.package.version ?? null)}
+              className="text-xs shrink-0 transition-colors"
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: copiedPkg === r.package.name ? 'var(--clean)' : '#444' }}
+              title={`Copy ${r.package.name}${r.package.version ? `@${r.package.version}` : ''}`}
+              onMouseEnter={e => { if (copiedPkg !== r.package.name) e.currentTarget.style.color = 'var(--muted)'; }}
+              onMouseLeave={e => { if (copiedPkg !== r.package.name) e.currentTarget.style.color = '#444'; }}
+            >
+              {copiedPkg === r.package.name ? '✓' : '⧉'}
+            </button>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <VulnPill result={r} />
@@ -299,7 +321,16 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
       {/* Summary bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-xs tracking-widest flex flex-wrap items-center gap-2" style={{ color: 'var(--muted)' }}>
-          {!scanning && <span style={{ color: 'var(--fg)' }}>SCAN COMPLETE</span>}
+          {!scanning && (
+            <span style={{ color: 'var(--fg)' }}>
+              SCAN COMPLETE
+              {scanMs !== undefined && (
+                <span style={{ color: '#555', marginLeft: 6 }}>
+                  {scanMs >= 1000 ? `${(scanMs / 1000).toFixed(1)}s` : `${scanMs}ms`}
+                </span>
+              )}
+            </span>
+          )}
           <span>·</span>
           <span style={{ color: 'var(--critical)' }}>{critical} CRITICAL</span>
           <span>·</span>
@@ -360,6 +391,21 @@ export default function ResultsTable({ results, scanning = false }: ResultsTable
       </div>
 
       <ScanCharts results={results} scanning={scanning} filter={filter} onFilter={setFilter} />
+
+      {/* ALL CLEAR state */}
+      {allClean && (
+        <div
+          className="my-6 px-6 py-8 text-center"
+          style={{ border: '1px solid var(--clean)' }}
+        >
+          <p className="text-4xl md:text-5xl font-black tracking-widest mb-3" style={{ color: 'var(--clean)' }}>
+            ALL CLEAR
+          </p>
+          <p className="text-xs tracking-widest" style={{ color: '#555' }}>
+            {results.length} package{results.length !== 1 ? 's' : ''} scanned · no flags · no known CVEs
+          </p>
+        </div>
+      )}
 
       {/* Table */}
       <div style={{ border: '1px solid var(--border)', maxHeight: 'min(600px, 70vh)', overflowY: 'auto' }}>
