@@ -1,5 +1,6 @@
 import Nav from '@/components/Nav';
 import Hero from '@/components/Hero';
+import SecurityNews from '@/components/SecurityNews';
 import ScannerSection from '@/components/ScannerSection';
 import ProblemSection from '@/components/ProblemSection';
 import ChecksGrid from '@/components/ChecksGrid';
@@ -14,6 +15,7 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
+        <SecurityNews />
         <AnimatedSection><ScannerSection /></AnimatedSection>
         <AnimatedSection><ProblemSection /></AnimatedSection>
         <AnimatedSection><ChecksGrid /></AnimatedSection>

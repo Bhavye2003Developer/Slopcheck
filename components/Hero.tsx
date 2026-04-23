@@ -8,7 +8,7 @@ const badges = [
   { label: 'STATUS |', value: 'LIVE' },
   { label: 'PKG-CHECKS/', value: '5' },
   { label: 'LATENCY/', value: '~2S' },
-  { label: 'SOURCE/', value: 'NPM x PYPI' },
+  { label: 'SOURCE/', value: 'NPM · PYPI · GO · CARGO · GEMS' },
 ];
 
 export default function Hero() {

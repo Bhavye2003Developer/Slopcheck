@@ -13,9 +13,10 @@ export default function ProblemSection() {
           </div>
           <div className="flex flex-col justify-center">
             <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-              AI coding assistants hallucinate package names at a significant rate across all models.
-              Attackers monitor these hallucinations, register the invented names on npm and PyPI, and wait.
-              Every <span style={{ color: 'var(--fg)' }}>`npm install`</span> from an AI-generated file is a potential supply chain attack.
+              Slopsquatting is a documented, active threat. AI models suggest package names that don&apos;t exist —
+              threat actors register those names on public registries within hours, load them with malicious install
+              scripts, and wait. Slop Check cross-checks every dependency in your manifest against live registry data,
+              download history, and the OSV vulnerability database before a single byte executes.
             </p>
           </div>
         </div>

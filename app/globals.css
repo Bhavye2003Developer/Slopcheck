@@ -40,6 +40,10 @@ body {
   font-family: var(--font-mono);
 }
 
+p, li {
+  word-spacing: -1.5px;
+}
+
 @keyframes scanline {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100vh); }

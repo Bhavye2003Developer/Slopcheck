@@ -20,7 +20,7 @@ export default function Ticker({ items = DEFAULT_ITEMS }: TickerProps) {
   return (
     <div className="hidden md:block overflow-hidden border-t border-b py-2" style={{ borderColor: 'var(--border)' }}>
       <div className="flex whitespace-nowrap animate-ticker" style={{ width: 'max-content' }}>
-        <span className="text-xs tracking-widest px-8" style={{ color: 'var(--critical)' }}>
+        <span className="text-xs tracking-wider px-8" style={{ color: 'var(--critical)' }}>
           {text} |{text}
         </span>
       </div>
