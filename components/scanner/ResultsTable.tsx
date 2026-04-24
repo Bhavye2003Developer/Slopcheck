@@ -159,6 +159,149 @@ function downloadFile(content: string, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
+function computeScore(results: ScanResult[]): number {
+  const c = results.filter(r => r.severity === 'critical').length;
+  const h = results.filter(r => r.severity === 'high').length;
+  const m = results.filter(r => r.severity === 'medium').length;
+  return Math.min(100, c * 25 + h * 8 + m * 2);
+}
+
+function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
+  const date = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+  const score = computeScore(results);
+  const critical = results.filter(r => r.severity === 'critical').length;
+  const high     = results.filter(r => r.severity === 'high').length;
+  const medium   = results.filter(r => r.severity === 'medium').length;
+  const clean    = results.filter(r => r.severity === 'clean').length;
+  const flagged  = results.filter(r => r.severity !== 'clean' && r.severity !== 'unsupported').length;
+  const totalCves = results.reduce((s, r) => s + (r.cves?.length ?? 0), 0);
+
+  const scoreColor = score >= 75 ? '#cc1111' : score >= 50 ? '#cc5500' : score >= 25 ? '#997700' : score > 0 ? '#997700' : '#007a2f';
+  const scoreLabel = score >= 75 ? 'CRITICAL' : score >= 50 ? 'HIGH RISK' : score >= 25 ? 'CAUTION' : score > 0 ? 'LOW RISK' : 'ALL CLEAR';
+
+  const sevColor: Record<string, string> = {
+    critical: '#cc1111', high: '#cc5500', medium: '#997700', clean: '#007a2f', unsupported: '#888',
+  };
+
+  const rows = results.map((r, i) => {
+    const ver = r.package.version ?? '-';
+    const latest = r.meta.latestVersion && r.meta.latestVersion !== r.package.version ? ` → ${r.meta.latestVersion}` : '';
+    const dl = r.meta.monthlyDownloads !== undefined ? fmtDownloads(r.meta.monthlyDownloads) : '-';
+    const flag = FLAG_LABEL[r.flag] ?? SEVERITY_LABEL[r.severity];
+    const sc = sevColor[r.severity] ?? '#888';
+    const cveText = r.cves?.length ? r.cves.map(c => `${c.id} (${c.severity}${c.cvss ? ' ' + c.cvss.toFixed(1) : ''})`).join(', ') : '';
+    return `<tr>
+      <td style="color:#888;text-align:right">${i + 1}</td>
+      <td style="font-weight:bold">${r.package.name}<span style="color:#888;font-weight:normal">${ver !== '-' ? '@' + ver + latest : ''}</span></td>
+      <td style="color:${sc}">${r.severity.toUpperCase()}</td>
+      <td style="color:#555">${flag}</td>
+      <td>${r.reason}</td>
+      <td style="color:#888">${dl}</td>
+      ${cveText ? `<td style="color:#cc5500;font-size:8pt">${cveText}</td>` : '<td style="color:#ccc">—</td>'}
+    </tr>`;
+  }).join('');
+
+  const cveRows = results.filter(r => r.cves?.length).flatMap(r =>
+    (r.cves ?? []).map(cve => `<tr>
+      <td style="font-weight:bold">${r.package.name}${r.package.version ? '@' + r.package.version : ''}</td>
+      <td style="font-weight:bold;color:${cve.severity === 'CRITICAL' ? '#cc1111' : cve.severity === 'HIGH' ? '#cc5500' : '#997700'}">${cve.id}</td>
+      <td style="color:${cve.severity === 'CRITICAL' ? '#cc1111' : cve.severity === 'HIGH' ? '#cc5500' : '#997700'}">${cve.severity}</td>
+      <td>${cve.cvss !== null ? cve.cvss.toFixed(1) : '—'}</td>
+      <td>${cve.summary ?? '—'}</td>
+      <td style="color:#007a2f">${cve.fixedIn ?? '—'}</td>
+    </tr>`)
+  ).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SlopCheck — Security Audit Report</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Courier New', Courier, monospace; background: #fff; color: #111; font-size: 10pt; line-height: 1.5; }
+.page { padding: 2.5cm 2.5cm 2cm; max-width: 1100px; margin: 0 auto; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 14px; margin-bottom: 22px; }
+.brand { font-size: 22pt; font-weight: bold; letter-spacing: 0.08em; }
+.subtitle { font-size: 7.5pt; letter-spacing: 0.25em; color: #666; margin-top: 3px; }
+.meta { font-size: 9pt; color: #666; text-align: right; }
+.score-block { display: flex; align-items: center; gap: 40px; padding: 20px 24px; border: 1px solid #ddd; margin-bottom: 24px; }
+.score-num { font-size: 52pt; font-weight: bold; line-height: 1; color: ${scoreColor}; }
+.score-label { font-size: 9pt; letter-spacing: 0.3em; color: ${scoreColor}; margin-top: 4px; }
+.stats { display: flex; gap: 28px; }
+.stat { text-align: center; }
+.stat-val { font-size: 22pt; font-weight: bold; line-height: 1; }
+.stat-key { font-size: 7.5pt; letter-spacing: 0.2em; color: #888; margin-top: 3px; }
+.section-title { font-size: 7.5pt; letter-spacing: 0.25em; color: #999; border-bottom: 1px solid #e0e0e0; padding-bottom: 7px; margin: 26px 0 12px; text-transform: uppercase; }
+table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+th { text-align: left; letter-spacing: 0.1em; font-size: 7.5pt; color: #999; border-bottom: 1px solid #111; padding: 6px 8px; white-space: nowrap; }
+td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+.footer { margin-top: 36px; border-top: 1px solid #e0e0e0; padding-top: 12px; font-size: 7.5pt; color: #bbb; text-align: center; letter-spacing: 0.1em; }
+.print-btn { position: fixed; top: 16px; right: 16px; font-family: 'Courier New', monospace; font-size: 10pt; letter-spacing: 0.1em; padding: 8px 18px; background: #111; color: #fff; border: none; cursor: pointer; }
+@media print {
+  @page { margin: 1.5cm; }
+  .page { padding: 0; }
+  .print-btn { display: none; }
+  tr { page-break-inside: avoid; }
+  .score-block { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">PRINT / SAVE PDF</button>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="brand">SLOPCHECK.</div>
+      <div class="subtitle">DEPENDENCY SECURITY AUDIT REPORT</div>
+    </div>
+    <div class="meta">
+      ${date}<br>
+      ${results.length} packages scanned${scanMs !== null ? ' · ' + (scanMs >= 1000 ? (scanMs / 1000).toFixed(1) + 's' : scanMs + 'ms') : ''}
+    </div>
+  </div>
+
+  <div class="score-block">
+    <div>
+      <div class="score-num">${score}</div>
+      <div class="score-label">${scoreLabel}</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" style="color:#cc1111">${critical}</div><div class="stat-key">CRITICAL</div></div>
+      <div class="stat"><div class="stat-val" style="color:#cc5500">${high}</div><div class="stat-key">HIGH</div></div>
+      <div class="stat"><div class="stat-val" style="color:#997700">${medium}</div><div class="stat-key">MEDIUM</div></div>
+      <div class="stat"><div class="stat-val" style="color:#007a2f">${clean}</div><div class="stat-key">CLEAN</div></div>
+      ${totalCves > 0 ? `<div class="stat"><div class="stat-val" style="color:#cc5500">${totalCves}</div><div class="stat-key">CVEs</div></div>` : ''}
+    </div>
+  </div>
+
+  <div class="section-title">PACKAGE AUDIT · ${flagged} flagged of ${results.length} scanned</div>
+  <table>
+    <thead><tr>
+      <th>#</th><th>PACKAGE</th><th>SEVERITY</th><th>FLAG</th><th>REASON</th><th>DOWNLOADS</th><th>CVEs</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  ${cveRows ? `
+  <div class="section-title">CVE DETAILS · ${totalCves} vulnerabilities</div>
+  <table>
+    <thead><tr>
+      <th>PACKAGE</th><th>CVE ID</th><th>SEVERITY</th><th>CVSS</th><th>SUMMARY</th><th>FIXED IN</th>
+    </tr></thead>
+    <tbody>${cveRows}</tbody>
+  </table>` : ''}
+
+  <div class="footer">
+    GENERATED BY SLOPCHECK · slopcheck.com · ${date} · ALL CHECKS PERFORMED CLIENT-SIDE · NO DATA SENT TO ANY SERVER
+  </div>
+</div>
+<script>setTimeout(function(){ window.print(); }, 400);</script>
+</body>
+</html>`;
+}
+
 function buildSarif(results: ScanResult[]): string {
   type SarifLevel = 'error' | 'warning' | 'note';
 
@@ -314,6 +457,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
   const [badgeCopied, setBadgeCopied] = useState(false);
   const [yamlCopied, setYamlCopied] = useState(false);
   const [sarifCopied, setSarifCopied] = useState(false);
+  const [pdfOpened, setPdfOpened] = useState(false);
 
   function copyPkg(name: string, version: string | null) {
     const text = version ? `${name}@${version}` : name;
@@ -441,6 +585,16 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
     downloadFile(JSON.stringify(results, null, 2), 'slopcheck-results.json', 'application/json');
   }
 
+  function exportPdf() {
+    const html = buildReportHtml(results, scanMs ?? null);
+    const blob = new Blob([html], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, '_blank');
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
+    setPdfOpened(true);
+    setTimeout(() => setPdfOpened(false), 2000);
+  }
+
   function exportSarif() {
     downloadFile(buildSarif(results), 'slopcheck-results.sarif', 'application/json');
     setSarifCopied(true);
@@ -544,6 +698,16 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
               title="Export SARIF — upload to GitHub code scanning"
             >
               {sarifCopied ? 'SAVED!' : 'SARIF'}
+            </button>
+            <button
+              onClick={exportPdf}
+              className="text-xs tracking-widest px-3 py-2 transition-colors"
+              style={{ border: `1px solid ${pdfOpened ? 'var(--clean)' : 'var(--border)'}`, color: pdfOpened ? 'var(--clean)' : 'var(--fg)' }}
+              onMouseEnter={e => { if (!pdfOpened) e.currentTarget.style.borderColor = 'var(--fg)'; }}
+              onMouseLeave={e => { if (!pdfOpened) e.currentTarget.style.borderColor = pdfOpened ? 'var(--clean)' : 'var(--border)'; }}
+              title="Open print-ready report — use browser Print → Save as PDF"
+            >
+              {pdfOpened ? 'OPENED!' : 'PDF'}
             </button>
             <button
               onClick={shareReport}
