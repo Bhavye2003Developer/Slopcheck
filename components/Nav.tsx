@@ -54,48 +54,12 @@ function NetworkMeter() {
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('slopcheck-theme');
-    const systemLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    const resolved = saved ?? (systemLight ? 'light' : 'dark');
-    if (resolved === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    }
-    setTheme(resolved as 'light' | 'dark');
-  }, []);
-
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.classList.toggle('light', next === 'light');
-    document.documentElement.classList.toggle('dark', next === 'dark');
-    try { localStorage.setItem('slopcheck-theme', next); } catch {}
-    setTheme(next);
-  }
-
-  const themeBtn = (
-    <button
-      onClick={toggleTheme}
-      className="text-xs tracking-widest transition-colors shrink-0"
-      style={{ color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', fontFamily: 'var(--font-mono)' }}
-      onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
-      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      {theme === 'dark' ? '☀' : '☾'}
-    </button>
-  );
 
   return (
     <nav
@@ -114,8 +78,6 @@ export default function Nav() {
         <NetworkMeter />
 
         <div className="flex items-center gap-3">
-          {themeBtn}
-
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
             {links.map(l => (
