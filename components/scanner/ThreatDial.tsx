@@ -86,7 +86,7 @@ export default function ThreatDial({ results }: { results: ScanResult[] }) {
           fill="none"
           style={{ stroke: 'var(--track)' }}
           strokeWidth={13}
-          strokeLinecap="round"
+          strokeLinecap="butt"
         />
 
         {/* Fill arc — gradient, trimmed by dashoffset */}
@@ -95,7 +95,7 @@ export default function ThreatDial({ results }: { results: ScanResult[] }) {
           fill="none"
           stroke="url(#threatGradient)"
           strokeWidth={13}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           strokeDasharray={`${CIRCUM}`}
           strokeDashoffset={`${offset}`}
         />
