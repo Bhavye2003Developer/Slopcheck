@@ -9,9 +9,7 @@ const links = [
   { label: '[04] FAQ', href: '#faq' },
 ];
 
-interface NetInfo {
-  online: boolean;
-}
+interface NetInfo { online: boolean }
 
 function NetworkMeter() {
   const [info, setInfo] = useState<NetInfo | null>(null);
@@ -20,7 +18,6 @@ function NetworkMeter() {
     function read() {
       startTransition(() => setInfo({ online: navigator.onLine }));
     }
-
     read();
     window.addEventListener('online', read);
     window.addEventListener('offline', read);
@@ -32,7 +29,7 @@ function NetworkMeter() {
 
   if (!info) return null;
 
-  const dotColor = info.online ? '#00cc66' : '#ff4444';
+  const dotColor = info.online ? 'var(--live)' : 'var(--critical)';
 
   return (
     <div className="flex items-center gap-1.5 text-xs">
@@ -43,7 +40,7 @@ function NetworkMeter() {
           height: 6,
           borderRadius: '50%',
           background: dotColor,
-          boxShadow: info.online ? `0 0 6px ${dotColor}` : 'none',
+          boxShadow: info.online ? '0 0 6px var(--live)' : 'none',
           flexShrink: 0,
         }}
       />
@@ -57,6 +54,7 @@ function NetworkMeter() {
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -64,12 +62,47 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('slopcheck-theme');
+    const systemLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    const resolved = saved ?? (systemLight ? 'light' : 'dark');
+    if (resolved === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+    setTheme(resolved as 'light' | 'dark');
+  }, []);
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.classList.toggle('light', next === 'light');
+    document.documentElement.classList.toggle('dark', next === 'dark');
+    try { localStorage.setItem('slopcheck-theme', next); } catch {}
+    setTheme(next);
+  }
+
+  const themeBtn = (
+    <button
+      onClick={toggleTheme}
+      className="text-xs tracking-widest transition-colors shrink-0"
+      style={{ color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', fontFamily: 'var(--font-mono)' }}
+      onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+      onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
+      {theme === 'dark' ? '☀' : '☾'}
+    </button>
+  );
+
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-200"
       style={{
         borderBottom: scrolled || menuOpen ? '1px solid var(--border)' : 'none',
-        background: scrolled || menuOpen ? 'rgba(10,10,10,0.97)' : 'transparent',
+        background: scrolled || menuOpen ? 'var(--nav-bg)' : 'transparent',
         backdropFilter: scrolled || menuOpen ? 'blur(8px)' : 'none',
       }}
     >
@@ -78,10 +111,11 @@ export default function Nav() {
           SLOPCHECK.
         </span>
 
-        {/* Network meter — center, visible at all sizes */}
         <NetworkMeter />
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
+          {themeBtn}
+
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
             {links.map(l => (

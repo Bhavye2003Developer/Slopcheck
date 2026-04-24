@@ -19,7 +19,7 @@ export default function ScanReceipt() {
   return (
     <div
       className="w-full max-w-lg rounded text-xs"
-      style={{ border: '1px solid var(--border)', background: '#0f0f0f' }}
+      style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
     >
       {/* Header */}
       <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>

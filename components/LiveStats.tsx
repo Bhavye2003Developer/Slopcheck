@@ -120,7 +120,7 @@ export default function LiveStats() {
           <div className="text-4xl md:text-5xl font-bold mb-3 tracking-tight" style={{ color: 'var(--warning)' }}>
             {s.value}
           </div>
-          <div className="text-xs leading-relaxed whitespace-pre-line mb-3" style={{ color: '#aaa' }}>
+          <div className="text-xs leading-relaxed whitespace-pre-line mb-3" style={{ color: 'var(--muted)' }}>
             {s.label}
           </div>
           <a
@@ -128,16 +128,16 @@ export default function LiveStats() {
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs transition-colors"
-            style={{ color: '#777' }}
+            style={{ color: 'var(--dim-label)' }}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--muted)')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#777')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--dim-label)')}
           >
             SOURCE: {s.source} ↗
           </a>
         </div>
       )) : [0, 1, 2].map(i => (
         <div key={i} className="px-6 md:px-8 py-10" style={{ background: 'var(--bg)' }}>
-          <div className="text-4xl font-bold mb-3 tracking-tight" style={{ color: '#222' }}>--</div>
+          <div className="text-4xl font-bold mb-3 tracking-tight" style={{ color: 'var(--border)' }}>--</div>
         </div>
       ))}
     </div>

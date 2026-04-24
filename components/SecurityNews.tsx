@@ -36,8 +36,8 @@ type HnHit = {
 };
 
 const SEV_COLOR: Record<string, string> = {
-  CRITICAL: '#ff4444',
-  HIGH: '#ff7700',
+  CRITICAL: 'var(--critical)',
+  HIGH: 'var(--orange)',
 };
 
 function relDate(iso: string): string {
@@ -100,8 +100,8 @@ function Skeleton() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <p className="text-xs tracking-widest" style={{ color: 'var(--critical)' }}>THREAT INTEL</p>
-          <span className="text-xs" style={{ color: '#333' }}>· fetching...</span>
-          <span className="text-xs px-2 py-0.5 tracking-widest font-bold" style={{ border: '1px solid #00cc66', color: '#00cc66' }}>LIVE</span>
+          <span className="text-xs" style={{ color: 'var(--dim-hi)' }}>· fetching...</span>
+          <span className="text-xs px-2 py-0.5 tracking-widest font-bold" style={{ border: '1px solid var(--live)', color: 'var(--live)' }}>LIVE</span>
         </div>
         <div style={{ border: '1px solid var(--border)' }}>
           {[70, 55, 80, 45].map((w, i) => (
@@ -110,8 +110,8 @@ function Skeleton() {
               className="px-4 py-3"
               style={{ borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}
             >
-              <div style={{ height: 11, background: '#181818', borderRadius: 2, width: `${w}%`, marginBottom: 7 }} />
-              <div style={{ height: 9, background: '#111', borderRadius: 2, width: '90%' }} />
+              <div style={{ height: 11, background: 'var(--panel)', borderRadius: 2, width: `${w}%`, marginBottom: 7 }} />
+              <div style={{ height: 9, background: 'var(--panel)', borderRadius: 2, width: '90%' }} />
             </div>
           ))}
         </div>
@@ -163,10 +163,10 @@ export default function SecurityNews() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <p className="text-xs tracking-widest" style={{ color: 'var(--critical)' }}>THREAT INTEL</p>
-          <span className="text-xs" style={{ color: '#333' }}>· recent CVEs + security incidents</span>
+          <span className="text-xs" style={{ color: 'var(--dim-hi)' }}>· recent CVEs + security incidents</span>
           <span
             className="text-xs px-2 py-0.5 tracking-widest font-bold"
-            style={{ border: '1px solid #00cc66', color: '#00cc66' }}
+            style={{ border: '1px solid var(--live)', color: 'var(--live)' }}
           >
             LIVE
           </span>
@@ -178,7 +178,7 @@ export default function SecurityNews() {
             maxHeight: 480,
             overflowY: 'auto',
             scrollbarWidth: 'thin',
-            scrollbarColor: '#2a2a2a transparent',
+            scrollbarColor: 'var(--scrollbar) transparent',
           }}
         >
           {items.map((item, i) => {
@@ -193,16 +193,16 @@ export default function SecurityNews() {
                 style={{
                   borderBottom: isLast ? 'none' : '1px solid var(--border)',
                   textDecoration: 'none',
-                  background: '#060606',
+                  background: 'var(--surface-deep)',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#0f0f0f')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#060606')}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--surface-deep)')}
               >
                 {/* Row 1: source · badge · label · age · arrow */}
                 <div className="flex items-baseline gap-2 mb-1 min-w-0">
                   <span
                     className="shrink-0 font-bold"
-                    style={{ color: item.type === 'CVE' ? '#888' : '#ff6600', fontSize: 9, letterSpacing: '0.05em' }}
+                    style={{ color: item.type === 'CVE' ? 'var(--dim-label)' : '#ff6600', fontSize: 9, letterSpacing: '0.05em' }}
                   >
                     [{item.source}]
                   </span>
@@ -215,13 +215,13 @@ export default function SecurityNews() {
                   >
                     {item.label}
                   </span>
-                  <span className="shrink-0" style={{ color: '#444' }}>{relDate(item.date)}</span>
-                  <span className="shrink-0" style={{ color: '#333' }}>↗</span>
+                  <span className="shrink-0" style={{ color: 'var(--dim-mid)' }}>{relDate(item.date)}</span>
+                  <span className="shrink-0" style={{ color: 'var(--dim-hi)' }}>↗</span>
                 </div>
                 {/* Row 2: description */}
                 <p
                   className="text-xs leading-relaxed"
-                  style={{ color: '#555', margin: 0, paddingLeft: 0 }}
+                  style={{ color: 'var(--dim-lo)', margin: 0, paddingLeft: 0 }}
                 >
                   {item.description}
                 </p>

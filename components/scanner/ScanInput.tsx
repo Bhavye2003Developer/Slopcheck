@@ -52,7 +52,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
   }
 
   return (
-    <div className="rounded text-xs" style={{ border: '1px solid var(--border)', background: '#0f0f0f' }}>
+    <div className="rounded text-xs" style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}>
       {/* Title bar */}
       <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
         <span className="tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>PASTE MANIFEST</span>
