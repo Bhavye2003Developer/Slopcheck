@@ -3,11 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ScanResult } from '@/lib/types';
 
-const R = 80;
-const CX = 100;
-const CY = 100;
-const CIRCUM = Math.PI * R; // ≈ 251.3
-
 function computeScore(results: ScanResult[]): number {
   const criticals = results.filter(r => r.severity === 'critical').length;
   const highs = results.filter(r => r.severity === 'high').length;
@@ -56,83 +51,24 @@ export default function ThreatDial({ results }: { results: ScanResult[] }) {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const offset = CIRCUM * (1 - displayed / 100);
   const color = scoreColor(displayed);
   const label = scoreLabel(displayed);
 
   return (
     <div className="flex flex-col items-center py-4 md:py-6">
-      <svg
-        viewBox="0 0 200 118"
-        className="w-44 md:w-64"
-        aria-label={`Threat score: ${displayed} — ${label}`}
+      <p
+        className="font-bold leading-none"
+        style={{ fontSize: 72, color, fontFamily: 'var(--font-mono)', transition: 'color 0.3s ease' }}
       >
-        <defs>
-          <linearGradient
-            id="threatGradient"
-            gradientUnits="userSpaceOnUse"
-            x1={CX - R} y1={CY}
-            x2={CX + R} y2={CY}
-          >
-            <stop offset="0%" style={{ stopColor: 'var(--clean)' }} />
-            <stop offset="45%" style={{ stopColor: 'var(--warning)' }} />
-            <stop offset="100%" style={{ stopColor: 'var(--critical)' }} />
-          </linearGradient>
-        </defs>
-
-        {/* Track */}
-        <path
-          d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 0 ${CX + R} ${CY}`}
-          fill="none"
-          style={{ stroke: 'var(--track)' }}
-          strokeWidth={13}
-          strokeLinecap="butt"
-        />
-
-        {/* Fill arc — gradient, trimmed by dashoffset */}
-        <path
-          d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 0 ${CX + R} ${CY}`}
-          fill="none"
-          stroke="url(#threatGradient)"
-          strokeWidth={13}
-          strokeLinecap="butt"
-          strokeDasharray={`${CIRCUM}`}
-          strokeDashoffset={`${offset}`}
-        />
-
-        {/* Score number */}
-        <text
-          x={CX}
-          y={CY - 28}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize={44}
-          fontWeight="bold"
-          fill={color}
-          fontFamily="var(--font-mono)"
-          style={{ transition: 'fill 0.3s ease' }}
-        >
-          {displayed}
-        </text>
-
-        {/* Risk label */}
-        <text
-          x={CX}
-          y={CY - 8}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize={9}
-          fill={color}
-          fontFamily="var(--font-mono)"
-          letterSpacing="4"
-          style={{ transition: 'fill 0.3s ease' }}
-        >
-          {label}
-        </text>
-
-      </svg>
-
-      <p className="text-xs tracking-widest -mt-1" style={{ color: 'var(--muted)' }}>THREAT SCORE</p>
+        {displayed}
+      </p>
+      <p
+        className="text-xs tracking-widest mt-1"
+        style={{ color, fontFamily: 'var(--font-mono)', transition: 'color 0.3s ease', letterSpacing: '0.25em' }}
+      >
+        {label}
+      </p>
+      <p className="text-xs tracking-widest mt-2" style={{ color: 'var(--muted)' }}>THREAT SCORE</p>
     </div>
   );
 }
