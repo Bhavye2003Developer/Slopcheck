@@ -130,9 +130,6 @@ export default function ThreatDial({ results }: { results: ScanResult[] }) {
           {label}
         </text>
 
-        {/* Scale markers */}
-        <text x={CX - R - 2} y={CY + 14} textAnchor="middle" fontSize={8} fontFamily="var(--font-mono)" style={{ fill: 'var(--dim-hi)' }}>0</text>
-        <text x={CX + R + 2} y={CY + 14} textAnchor="middle" fontSize={8} fontFamily="var(--font-mono)" style={{ fill: 'var(--dim-hi)' }}>100</text>
       </svg>
 
       <p className="text-xs tracking-widest -mt-1" style={{ color: 'var(--muted)' }}>THREAT SCORE</p>
