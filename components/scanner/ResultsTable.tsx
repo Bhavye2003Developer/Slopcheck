@@ -41,13 +41,13 @@ const SEVERITY_COLOR: Record<Severity, string> = {
 type CveSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'CLEAN';
 
 const VULN_COLOR: Record<CveSeverity | 'PENDING' | 'UNKNOWN', string> = {
-  CRITICAL: '#ff4444',
-  HIGH: '#ff7700',
-  MEDIUM: '#ffaa00',
-  LOW: '#ffaa00',
-  CLEAN: '#22ff88',
-  PENDING: '#555',
-  UNKNOWN: '#555',
+  CRITICAL: 'var(--critical)',
+  HIGH: 'var(--orange)',
+  MEDIUM: 'var(--warning)',
+  LOW: 'var(--warning)',
+  CLEAN: 'var(--clean)',
+  PENDING: 'var(--dim-lo)',
+  UNKNOWN: 'var(--dim-lo)',
 };
 
 interface ResultsTableProps {
@@ -71,13 +71,13 @@ function buildSummary(results: ScanResult[]) {
 function VulnPill({ result }: { result: ScanResult }) {
   if (result.cveSeverity === undefined) {
     return (
-      <span className="text-xs px-2 py-0.5 font-mono tracking-widest" style={{ color: '#555', border: '1px solid #333' }}>
+      <span className="text-xs px-2 py-0.5 font-mono tracking-widest" style={{ color: 'var(--dim-lo)', border: '1px solid var(--dim-hi)' }}>
         —
       </span>
     );
   }
   const sev = result.cveSeverity;
-  const color = VULN_COLOR[sev] ?? '#555';
+  const color = VULN_COLOR[sev] ?? 'var(--dim-lo)';
   return (
     <span className="text-xs px-2 py-0.5 font-mono tracking-widest" style={{ color, border: `1px solid ${color}` }}>
       {sev}
@@ -102,7 +102,7 @@ function CvePanel({ cves }: { cves: CVEEntry[] }) {
       <p className="text-xs tracking-widest mb-2" style={{ color: 'var(--muted)' }}>CVEs</p>
       <div className="flex flex-col gap-1">
         {cves.map(cve => {
-          const color = VULN_COLOR[cve.severity] ?? '#555';
+          const color = VULN_COLOR[cve.severity] ?? 'var(--dim-lo)';
           return (
             <div key={cve.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-mono">
               <a
@@ -110,9 +110,9 @@ function CvePanel({ cves }: { cves: CVEEntry[] }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="break-all"
-                style={{ color: 'var(--fg)', textDecorationLine: 'underline', textDecorationColor: '#444' }}
+                style={{ color: 'var(--fg)', textDecorationLine: 'underline', textDecorationColor: 'var(--dim-mid)' }}
                 onMouseEnter={e => (e.currentTarget.style.textDecorationColor = 'var(--fg)')}
-                onMouseLeave={e => (e.currentTarget.style.textDecorationColor = '#444')}
+                onMouseLeave={e => (e.currentTarget.style.textDecorationColor = 'var(--dim-mid)')}
               >
                 {cve.id}
               </a>
@@ -127,7 +127,7 @@ function CvePanel({ cves }: { cves: CVEEntry[] }) {
                 <span style={{ color: 'var(--clean)' }}>Fixed in {cve.fixedIn}</span>
               )}
               {cve.summary && (
-                <span className="w-full mt-0.5" style={{ color: '#666' }}>{cve.summary}</span>
+                <span className="w-full mt-0.5" style={{ color: 'var(--muted)' }}>{cve.summary}</span>
               )}
             </div>
           );
@@ -371,10 +371,10 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
             <button
               onClick={() => copyPkg(r.package.name, r.package.version ?? null)}
               className="text-xs shrink-0 transition-colors"
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: copiedPkg === r.package.name ? 'var(--clean)' : '#444' }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: copiedPkg === r.package.name ? 'var(--clean)' : 'var(--dim-mid)' }}
               title={`Copy ${r.package.name}${r.package.version ? `@${r.package.version}` : ''}`}
               onMouseEnter={e => { if (copiedPkg !== r.package.name) e.currentTarget.style.color = 'var(--muted)'; }}
-              onMouseLeave={e => { if (copiedPkg !== r.package.name) e.currentTarget.style.color = '#444'; }}
+              onMouseLeave={e => { if (copiedPkg !== r.package.name) e.currentTarget.style.color = 'var(--dim-mid)'; }}
             >
               {copiedPkg === r.package.name ? '✓' : '⧉'}
             </button>
@@ -394,15 +394,15 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
         <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{r.reason}</p>
         {r.meta.exists && (
           <div className="flex flex-wrap gap-x-3 md:gap-x-5 gap-y-1 text-xs">
-            <span style={{ color: '#888' }}>FILE <span style={{ color: 'var(--fg)' }}>{fileVer}</span></span>
-            <span style={{ color: '#888' }}>
+            <span style={{ color: 'var(--dim-label)' }}>FILE <span style={{ color: 'var(--fg)' }}>{fileVer}</span></span>
+            <span style={{ color: 'var(--dim-label)' }}>
               LATEST{' '}
               <span style={{ color: versionMismatch ? 'var(--warning)' : 'var(--fg)' }}>{latestVer}</span>
               {versionMismatch && <span style={{ color: 'var(--warning)' }}> ^</span>}
             </span>
-            <span style={{ color: '#888' }}>DL <span style={{ color: 'var(--fg)' }}>{fmtDownloads(r.meta.monthlyDownloads)}</span></span>
-            <span style={{ color: '#888' }}>UPDATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.updatedAt)}</span></span>
-            <span style={{ color: '#888' }}>CREATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.createdAt)}</span></span>
+            <span style={{ color: 'var(--dim-label)' }}>DL <span style={{ color: 'var(--fg)' }}>{fmtDownloads(r.meta.monthlyDownloads)}</span></span>
+            <span style={{ color: 'var(--dim-label)' }}>UPDATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.updatedAt)}</span></span>
+            <span style={{ color: 'var(--dim-label)' }}>CREATED <span style={{ color: 'var(--fg)' }}>{fmtDate(r.meta.createdAt)}</span></span>
           </div>
         )}
         {hasCves && (
@@ -427,10 +427,10 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
       <>
         <div
           className="px-3 md:px-4 py-2 text-xs tracking-widest"
-          style={{ background: '#111', color: 'var(--muted)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 1 }}
+          style={{ background: 'var(--panel)', color: 'var(--muted)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 1 }}
         >
           {label} <span style={{ color: 'var(--fg)' }}>{group.length}</span>
-          {filter && <span style={{ color: '#555', marginLeft: 8 }}>· filtered</span>}
+          {filter && <span style={{ color: 'var(--dim-lo)', marginLeft: 8 }}>· filtered</span>}
         </div>
         {group.map((r, i) => renderRow(r, i, offset + i))}
       </>
@@ -483,7 +483,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
             <span style={{ color: 'var(--fg)' }}>
               SCAN COMPLETE
               {scanMs !== undefined && (
-                <span style={{ color: '#555', marginLeft: 6 }}>
+                <span style={{ color: 'var(--dim-lo)', marginLeft: 6 }}>
                   {scanMs >= 1000 ? `${(scanMs / 1000).toFixed(1)}s` : `${scanMs}ms`}
                 </span>
               )}
@@ -494,17 +494,17 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
           <span>·</span>
           <span style={{ color: 'var(--warning)' }}>{high} HIGH</span>
           <span>·</span>
-          <span style={{ color: '#ffaa00' }}>{medium} MED</span>
+          <span style={{ color: 'var(--warning)' }}>{medium} MED</span>
           {osvDone && (
             <>
               <span>·</span>
-              <span style={{ color: '#ff4444' }}>{cveCritical} CVE-CRIT</span>
+              <span style={{ color: 'var(--critical)' }}>{cveCritical} CVE-CRIT</span>
               <span>·</span>
-              <span style={{ color: '#ff7700' }}>{cveHigh} CVE-HIGH</span>
+              <span style={{ color: 'var(--orange)' }}>{cveHigh} CVE-HIGH</span>
               <span>·</span>
               <span style={{ color: 'var(--fg)' }}>{totalCves} CVEs</span>
               <span>·</span>
-              <span style={{ color: '#22ff88' }}>{cveClean} CLEAN</span>
+              <span style={{ color: 'var(--clean)' }}>{cveClean} CLEAN</span>
             </>
           )}
           <span>·</span>
@@ -575,7 +575,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
           navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
         }
         return (
-          <div className="mt-3 text-xs" style={{ border: '1px solid var(--border)', background: '#0a0a0a' }}>
+          <div className="mt-3 text-xs" style={{ border: '1px solid var(--border)', background: 'var(--bg)' }}>
             <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
               <p className="tracking-widest mb-2" style={{ color: 'var(--muted)' }}>README BADGE</p>
               <div className="flex items-center gap-3">
@@ -625,7 +625,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
           <p className="text-4xl md:text-5xl font-black tracking-widest mb-3" style={{ color: 'var(--clean)' }}>
             ALL CLEAR
           </p>
-          <p className="text-xs tracking-widest" style={{ color: '#555' }}>
+          <p className="text-xs tracking-widest" style={{ color: 'var(--dim-lo)' }}>
             {results.length} package{results.length !== 1 ? 's' : ''} scanned · no flags · no known CVEs
           </p>
         </div>
@@ -634,11 +634,11 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
       {/* Table */}
       <div style={{ border: '1px solid var(--border)', maxHeight: 'min(600px, 70vh)', overflowY: 'auto' }}>
         {deps.length === 0 && devDeps.length === 0 ? (
-          <div className="px-4 py-8 text-xs tracking-widest text-center" style={{ color: '#333' }}>
+          <div className="px-4 py-8 text-xs tracking-widest text-center" style={{ color: 'var(--dim-hi)' }}>
             NO PACKAGES MATCH THIS FILTER
             <button
               onClick={() => setFilter(null)}
-              style={{ display: 'block', margin: '8px auto 0', color: '#555', background: 'none', border: '1px solid var(--border)', padding: '4px 12px', cursor: 'pointer', fontSize: 11 }}
+              style={{ display: 'block', margin: '8px auto 0', color: 'var(--dim-lo)', background: 'none', border: '1px solid var(--border)', padding: '4px 12px', cursor: 'pointer', fontSize: 11 }}
             >
               RESET ×
             </button>

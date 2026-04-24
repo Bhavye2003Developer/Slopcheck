@@ -17,9 +17,9 @@ function computeScore(results: ScanResult[]): number {
 
 function scoreColor(score: number): string {
   if (score >= 75) return 'var(--critical)';
-  if (score >= 50) return '#ff7700';
+  if (score >= 50) return 'var(--orange)';
   if (score >= 25) return 'var(--warning)';
-  if (score > 0) return '#88cc44';
+  if (score > 0) return 'var(--warning)';
   return 'var(--clean)';
 }
 
@@ -74,9 +74,9 @@ export default function ThreatDial({ results }: { results: ScanResult[] }) {
             x1={CX - R} y1={CY}
             x2={CX + R} y2={CY}
           >
-            <stop offset="0%" stopColor="#22ff88" />
-            <stop offset="45%" stopColor="#ffaa00" />
-            <stop offset="100%" stopColor="#ff4444" />
+            <stop offset="0%" style={{ stopColor: 'var(--clean)' }} />
+            <stop offset="45%" style={{ stopColor: 'var(--warning)' }} />
+            <stop offset="100%" style={{ stopColor: 'var(--critical)' }} />
           </linearGradient>
         </defs>
 
@@ -84,7 +84,7 @@ export default function ThreatDial({ results }: { results: ScanResult[] }) {
         <path
           d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 0 ${CX + R} ${CY}`}
           fill="none"
-          stroke="#1c1c1c"
+          style={{ stroke: 'var(--track)' }}
           strokeWidth={13}
           strokeLinecap="round"
         />
@@ -131,8 +131,8 @@ export default function ThreatDial({ results }: { results: ScanResult[] }) {
         </text>
 
         {/* Scale markers */}
-        <text x={CX - R - 2} y={CY + 14} textAnchor="middle" fontSize={8} fill="#333" fontFamily="var(--font-mono)">0</text>
-        <text x={CX + R + 2} y={CY + 14} textAnchor="middle" fontSize={8} fill="#333" fontFamily="var(--font-mono)">100</text>
+        <text x={CX - R - 2} y={CY + 14} textAnchor="middle" fontSize={8} fontFamily="var(--font-mono)" style={{ fill: 'var(--dim-hi)' }}>0</text>
+        <text x={CX + R + 2} y={CY + 14} textAnchor="middle" fontSize={8} fontFamily="var(--font-mono)" style={{ fill: 'var(--dim-hi)' }}>100</text>
       </svg>
 
       <p className="text-xs tracking-widest -mt-1" style={{ color: 'var(--muted)' }}>THREAT SCORE</p>

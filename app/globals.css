@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  /* ── Brand ───────────────────────── */
   --bg: #0a0a0a;
   --fg: #ededed;
   --critical: #ff4444;
@@ -8,7 +9,116 @@
   --clean: #22ff88;
   --muted: #999999;
   --border: #222222;
+  /* ── Semantic extras ─────────────── */
+  --orange: #ff7700;
+  --blue: #6688ff;
+  --live: #00cc66;
+  /* ── Surfaces ────────────────────── */
+  --nav-bg: rgba(10, 10, 10, 0.97);
+  --panel: #111111;
+  --surface: #0f0f0f;
+  --surface-deep: #060606;
+  --track: #1c1c1c;
+  --grid: #111111;
+  /* ── Neutral grays ───────────────── */
+  --dim-hi: #333333;
+  --dim-mid: #444444;
+  --dim-lo: #555555;
+  --dim-label: #888888;
+  /* ── Chart ───────────────────────── */
+  --chart-center: #e0e0e0;
+  --chart-label: #3a3a3a;
+  --scrollbar: #2a2a2a;
+  /* ── Font ────────────────────────── */
   --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+}
+
+/* System preference — applies when no class overrides */
+@media (prefers-color-scheme: light) {
+  :root:not(.dark) {
+    --bg: #f4f4f0;
+    --fg: #111111;
+    --critical: #cc1111;
+    --warning: #b36a00;
+    --clean: #007a2f;
+    --muted: #666666;
+    --border: #d0d0d0;
+    --orange: #cc4400;
+    --blue: #3355dd;
+    --live: #008833;
+    --nav-bg: rgba(244, 244, 240, 0.97);
+    --panel: #e4e4e0;
+    --surface: #eeecea;
+    --surface-deep: #f0f0ec;
+    --track: #d4d4d0;
+    --grid: #d0d0d0;
+    --dim-hi: #d0d0d0;
+    --dim-mid: #bbbbbb;
+    --dim-lo: #aaaaaa;
+    --dim-label: #888888;
+    --chart-center: #222222;
+    --chart-label: #888888;
+    --scrollbar: #cccccc;
+  }
+}
+
+/* Explicit user override — light */
+:root.light {
+  /* ── Brand ───────────────────────── */
+  --bg: #f4f4f0;
+  --fg: #111111;
+  --critical: #cc1111;
+  --warning: #b36a00;
+  --clean: #007a2f;
+  --muted: #666666;
+  --border: #d0d0d0;
+  /* ── Semantic extras ─────────────── */
+  --orange: #cc4400;
+  --blue: #3355dd;
+  --live: #008833;
+  /* ── Surfaces ────────────────────── */
+  --nav-bg: rgba(244, 244, 240, 0.97);
+  --panel: #e4e4e0;
+  --surface: #eeecea;
+  --surface-deep: #f0f0ec;
+  --track: #d4d4d0;
+  --grid: #d0d0d0;
+  /* ── Neutral grays ───────────────── */
+  --dim-hi: #d0d0d0;
+  --dim-mid: #bbbbbb;
+  --dim-lo: #aaaaaa;
+  --dim-label: #888888;
+  /* ── Chart ───────────────────────── */
+  --chart-center: #222222;
+  --chart-label: #888888;
+  --scrollbar: #cccccc;
+}
+
+/* Explicit user override — dark (wins over system light pref) */
+:root.dark {
+  --bg: #0a0a0a;
+  --fg: #ededed;
+  --critical: #ff4444;
+  --warning: #ffaa00;
+  --clean: #22ff88;
+  --muted: #999999;
+  --border: #222222;
+  --orange: #ff7700;
+  --blue: #6688ff;
+  --live: #00cc66;
+  --nav-bg: rgba(10, 10, 10, 0.97);
+  --panel: #111111;
+  --surface: #0f0f0f;
+  --surface-deep: #060606;
+  --track: #1c1c1c;
+  --grid: #111111;
+  --dim-hi: #333333;
+  --dim-mid: #444444;
+  --dim-lo: #555555;
+  --dim-label: #888888;
+  --chart-center: #e0e0e0;
+  --chart-label: #3a3a3a;
+  --scrollbar: #2a2a2a;
 }
 
 @theme inline {
@@ -50,19 +160,13 @@ p, li {
 }
 
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes ticker-scroll {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  to   { transform: translateX(-50%); }
 }
 
 .scanline-overlay::after {
@@ -88,14 +192,8 @@ p, li {
 }
 
 @keyframes section-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-section {

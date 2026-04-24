@@ -35,8 +35,11 @@ export function matchesFilter(r: ScanResult, f: ChartFilter): boolean {
 }
 
 const SEV_COLOR: Record<Severity, string> = {
-  critical: '#ff4444', high: '#ff7700', medium: '#ffaa00',
-  clean: '#22ff88', unsupported: '#444',
+  critical: 'var(--critical)',
+  high: 'var(--orange)',
+  medium: 'var(--warning)',
+  clean: 'var(--clean)',
+  unsupported: 'var(--dim-mid)',
 };
 
 // ─── card: title pinned top, content centered in remaining space ───────────────
@@ -49,14 +52,14 @@ function Card({
   onClear?: () => void;
 }) {
   return (
-    <div className="flex flex-col p-4" style={{ border: '1px solid var(--border)', background: '#060606', height: '100%' }}>
+    <div className="flex flex-col p-4" style={{ border: '1px solid var(--border)', background: 'var(--surface-deep)', height: '100%' }}>
       <div className="flex items-center justify-between mb-3" style={{ flexShrink: 0 }}>
-        <p className="text-xs tracking-widest" style={{ color: '#444' }}>{title}</p>
+        <p className="text-xs tracking-widest" style={{ color: 'var(--dim-mid)' }}>{title}</p>
         {onClear && (
           <button
             onClick={onClear}
             className="text-xs tracking-widest px-2 py-0.5"
-            style={{ color: '#888', border: '1px solid var(--border)', background: 'none', cursor: 'pointer' }}
+            style={{ color: 'var(--dim-label)', border: '1px solid var(--border)', background: 'none', cursor: 'pointer' }}
           >
             RESET ×
           </button>
@@ -119,14 +122,14 @@ function Ring({
               style={{
                 display: 'flex', alignItems: 'center', gap: 7,
                 width: '100%', padding: '4px 5px', marginBottom: 3,
-                background: isActive ? '#141414' : 'transparent',
+                background: isActive ? 'var(--panel)' : 'transparent',
                 border: `1px solid ${isActive ? a.color + '55' : 'transparent'}`,
                 borderRadius: 3, cursor: 'pointer',
                 opacity: dimmed ? 0.22 : 1,
               }}
             >
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: a.color, flexShrink: 0, display: 'inline-block' }} />
-              <span style={{ fontSize: 10, color: '#777', letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap' }}>{a.label}</span>
+              <span style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap' }}>{a.label}</span>
               <span style={{ fontSize: 10, color: a.color, fontWeight: 700 }}>{a.count}</span>
             </button>
           );
@@ -139,23 +142,23 @@ function Ring({
           viewBox={`0 0 ${SZ} ${SZ}`}
           style={{ width: '100%', height: 'auto' }}
         >
-          <circle cx={cx} cy={cy} r={R} fill="none" stroke="#151515" strokeWidth={SW} />
+          <circle cx={cx} cy={cy} r={R} fill="none" style={{ stroke: 'var(--track)' }} strokeWidth={SW} />
           {arcs.map((a, i) => {
             const dimmed = activeVal !== null && activeVal !== a.filterVal;
             return (
               <circle key={i} cx={cx} cy={cy} r={R}
-                fill="none" stroke={a.color} strokeWidth={SW}
+                fill="none" style={{ stroke: a.color }} strokeWidth={SW}
                 strokeDasharray={`${a.dash} ${C - a.dash}`}
                 strokeDashoffset={a.off}
                 strokeLinecap="butt"
                 opacity={dimmed ? 0.13 : 1}
-                style={{ cursor: 'pointer' }}
+                cursor="pointer"
                 onClick={() => toggle(a.filterVal)}
               />
             );
           })}
-          <text x={cx} y={cy - 6}  textAnchor="middle" fontSize={22} fontWeight="bold" fill="#e0e0e0">{total}</text>
-          <text x={cx} y={cy + 14} textAnchor="middle" fontSize={9}  fill="#444" letterSpacing="2">{center}</text>
+          <text x={cx} y={cy - 6}  textAnchor="middle" fontSize={22} fontWeight="bold" style={{ fill: 'var(--chart-center)' }}>{total}</text>
+          <text x={cx} y={cy + 14} textAnchor="middle" fontSize={9}  style={{ fill: 'var(--dim-mid)' }} letterSpacing="2">{center}</text>
         </svg>
       </div>
     </div>
@@ -166,11 +169,11 @@ function Ring({
 
 function SeverityDonut({ results, active, onFilter }: { results: ScanResult[]; active: ChartFilter; onFilter: (f: ChartFilter) => void }) {
   const segs: RingSeg[] = [
-    { label: 'CRITICAL',    color: '#ff4444', filterVal: 'critical',    count: results.filter(r => r.severity === 'critical').length },
-    { label: 'HIGH',        color: '#ff7700', filterVal: 'high',        count: results.filter(r => r.severity === 'high').length },
-    { label: 'MEDIUM',      color: '#ffaa00', filterVal: 'medium',      count: results.filter(r => r.severity === 'medium').length },
-    { label: 'CLEAN',       color: '#22ff88', filterVal: 'clean',       count: results.filter(r => r.severity === 'clean').length },
-    { label: 'UNSUPPORTED', color: '#444',    filterVal: 'unsupported', count: results.filter(r => r.severity === 'unsupported').length },
+    { label: 'CRITICAL',    color: 'var(--critical)', filterVal: 'critical',    count: results.filter(r => r.severity === 'critical').length },
+    { label: 'HIGH',        color: 'var(--orange)',   filterVal: 'high',        count: results.filter(r => r.severity === 'high').length },
+    { label: 'MEDIUM',      color: 'var(--warning)',  filterVal: 'medium',      count: results.filter(r => r.severity === 'medium').length },
+    { label: 'CLEAN',       color: 'var(--clean)',    filterVal: 'clean',       count: results.filter(r => r.severity === 'clean').length },
+    { label: 'UNSUPPORTED', color: 'var(--dim-mid)',  filterVal: 'unsupported', count: results.filter(r => r.severity === 'unsupported').length },
   ];
   return (
     <Card
@@ -190,22 +193,22 @@ function CveDonut({ results, active, onFilter }: { results: ScanResult[]; active
 
   if (scannable.length === 0) return (
     <Card title="CVE EXPOSURE">
-      <p style={{ fontSize: 11, color: '#2a2a2a' }}>No packages to scan.</p>
+      <p style={{ fontSize: 11, color: 'var(--muted)' }}>No packages to scan.</p>
     </Card>
   );
 
   if (scanned.length === 0) return (
     <Card title="CVE EXPOSURE">
-      <p style={{ fontSize: 11, color: '#2a2a2a' }}>OSV scan in progress...</p>
+      <p style={{ fontSize: 11, color: 'var(--muted)' }}>OSV scan in progress...</p>
     </Card>
   );
 
   const segs: RingSeg[] = [
-    { label: 'CRITICAL', color: '#ff4444', filterVal: 'CRITICAL', count: scanned.filter(r => r.cveSeverity === 'CRITICAL').length },
-    { label: 'HIGH',     color: '#ff7700', filterVal: 'HIGH',     count: scanned.filter(r => r.cveSeverity === 'HIGH').length },
-    { label: 'MEDIUM',   color: '#ffaa00', filterVal: 'MEDIUM',   count: scanned.filter(r => r.cveSeverity === 'MEDIUM').length },
-    { label: 'LOW',      color: '#6688ff', filterVal: 'LOW',      count: scanned.filter(r => r.cveSeverity === 'LOW').length },
-    { label: 'CLEAN',    color: '#22ff88', filterVal: 'CLEAN',    count: scanned.filter(r => r.cveSeverity === 'CLEAN').length },
+    { label: 'CRITICAL', color: 'var(--critical)', filterVal: 'CRITICAL', count: scanned.filter(r => r.cveSeverity === 'CRITICAL').length },
+    { label: 'HIGH',     color: 'var(--orange)',   filterVal: 'HIGH',     count: scanned.filter(r => r.cveSeverity === 'HIGH').length },
+    { label: 'MEDIUM',   color: 'var(--warning)',  filterVal: 'MEDIUM',   count: scanned.filter(r => r.cveSeverity === 'MEDIUM').length },
+    { label: 'LOW',      color: 'var(--blue)',     filterVal: 'LOW',      count: scanned.filter(r => r.cveSeverity === 'LOW').length },
+    { label: 'CLEAN',    color: 'var(--clean)',    filterVal: 'CLEAN',    count: scanned.filter(r => r.cveSeverity === 'CLEAN').length },
   ];
 
   const totalCves = results.reduce((s, r) => s + (r.cves?.length ?? 0), 0);
@@ -217,8 +220,8 @@ function CveDonut({ results, active, onFilter }: { results: ScanResult[]; active
     >
       <Ring segs={segs} total={scanned.length} center="PKGS" filterType="cve" active={active} onFilter={onFilter} />
       {totalCves > 0 && (
-        <p style={{ fontSize: 11, color: '#444', marginTop: -8 }}>
-          <span style={{ color: '#ff4444', fontWeight: 700 }}>{totalCves}</span> total CVEs
+        <p style={{ fontSize: 11, color: 'var(--dim-mid)', marginTop: -8 }}>
+          <span style={{ color: 'var(--critical)', fontWeight: 700 }}>{totalCves}</span> total CVEs
         </p>
       )}
     </Card>
@@ -228,10 +231,10 @@ function CveDonut({ results, active, onFilter }: { results: ScanResult[]; active
 // ─── 3. age distribution ──────────────────────────────────────────────────────
 
 const AGE_BUCKETS = [
-  { label: '< 30d',   color: '#ff4444' },
-  { label: '1–6mo',   color: '#ff7700' },
-  { label: '6mo–2yr', color: '#ffaa00' },
-  { label: '2yr+',    color: '#22ff88' },
+  { label: '< 30d',   color: 'var(--critical)' },
+  { label: '1–6mo',   color: 'var(--orange)' },
+  { label: '6mo–2yr', color: 'var(--warning)' },
+  { label: '2yr+',    color: 'var(--clean)' },
 ];
 
 
@@ -254,7 +257,7 @@ function AgeHistogram({ results, active, onFilter }: { results: ScanResult[]; ac
 
   if (pkgs.length === 0) return (
     <Card title="AGE DISTRIBUTION">
-      <p style={{ fontSize: 11, color: '#2a2a2a' }}>No age data available.</p>
+      <p style={{ fontSize: 11, color: 'var(--muted)' }}>No age data available.</p>
     </Card>
   );
 
@@ -264,7 +267,7 @@ function AgeHistogram({ results, active, onFilter }: { results: ScanResult[]; ac
       onClear={active?.type === 'age' ? () => onFilter(null) : undefined}
     >
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxWidth: W, height: 'auto' }}>
-        <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#1a1a1a" strokeWidth={1} />
+        <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} style={{ stroke: 'var(--track)' }} strokeWidth={1} />
         {AGE_BUCKETS.map((b, i) => {
           const cnt    = counts[i];
           const barH   = Math.max((cnt / maxCnt) * plotH, cnt > 0 ? 3 : 0);
@@ -274,19 +277,19 @@ function AgeHistogram({ results, active, onFilter }: { results: ScanResult[]; ac
           const dimmed = activeBucket !== null && !isAct;
           return (
             <g key={i} style={{ cursor: 'pointer' }} onClick={() => toggle(i)}>
-              <rect x={x} y={PAD.top} width={barW} height={plotH} fill="#0d0d0d" rx={2} />
+              <rect x={x} y={PAD.top} width={barW} height={plotH} style={{ fill: 'var(--surface-deep)' }} rx={2} />
               <rect x={x} y={y} width={barW} height={barH}
-                fill={b.color} fillOpacity={dimmed ? 0.12 : isAct ? 1 : 0.8} rx={2} />
+                style={{ fill: b.color }} fillOpacity={dimmed ? 0.12 : isAct ? 1 : 0.8} rx={2} />
               {isAct && (
                 <rect x={x - 1} y={PAD.top} width={barW + 2} height={plotH}
-                  fill="none" stroke={b.color} strokeWidth={1} strokeOpacity={0.4} rx={2} />
+                  fill="none" style={{ stroke: b.color }} strokeWidth={1} strokeOpacity={0.4} rx={2} />
               )}
               {cnt > 0 && (
                 <text x={x + barW / 2} y={y - 6} textAnchor="middle" fontSize={10} fontWeight="bold"
-                  fill={b.color} fillOpacity={dimmed ? 0.2 : 1}>{cnt}</text>
+                  style={{ fill: b.color }} fillOpacity={dimmed ? 0.2 : 1}>{cnt}</text>
               )}
               <text x={x + barW / 2} y={H - 6} textAnchor="middle" fontSize={9}
-                fill={dimmed ? '#252525' : isAct ? b.color : '#555'}>{b.label}</text>
+                style={{ fill: dimmed ? 'var(--dim-hi)' : isAct ? b.color : 'var(--dim-lo)' }}>{b.label}</text>
             </g>
           );
         })}
@@ -366,30 +369,30 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
         >
           {/* danger zone */}
           <rect x={PAD.left} y={dzY1} width={Math.max(dzX2 - PAD.left, 0)} height={PAD.top + ph - dzY1}
-            fill="#ff4444" fillOpacity={0.04} />
-          <text x={PAD.left + 4} y={dzY1 + 12} fontSize={7} fill="#ff4444" fillOpacity={0.28} letterSpacing="1">DANGER ZONE</text>
+            fill="var(--critical)" fillOpacity={0.04} />
+          <text x={PAD.left + 4} y={dzY1 + 12} fontSize={7} style={{ fill: 'var(--critical)' }} fillOpacity={0.28} letterSpacing="1">DANGER ZONE</text>
 
           {/* grid */}
           {yTicks.map(v => (
             <g key={v}>
-              <line x1={PAD.left} y1={yPos(v)} x2={PAD.left + pw} y2={yPos(v)} stroke="#111" strokeWidth={1} />
-              <text x={PAD.left - 5} y={yPos(v) + 3} textAnchor="end" fontSize={8} fill="#333">{fmtDl(v)}</text>
+              <line x1={PAD.left} y1={yPos(v)} x2={PAD.left + pw} y2={yPos(v)} style={{ stroke: 'var(--grid)' }} strokeWidth={1} />
+              <text x={PAD.left - 5} y={yPos(v) + 3} textAnchor="end" fontSize={8} style={{ fill: 'var(--dim-hi)' }}>{fmtDl(v)}</text>
             </g>
           ))}
           {xTicks.map(v => (
             <g key={v}>
-              <line x1={xPos(v)} y1={PAD.top} x2={xPos(v)} y2={PAD.top + ph} stroke="#111" strokeWidth={1} />
-              <text x={xPos(v)} y={PAD.top + ph + 14} textAnchor="middle" fontSize={8} fill="#333">{fmtAge(v)}</text>
+              <line x1={xPos(v)} y1={PAD.top} x2={xPos(v)} y2={PAD.top + ph} style={{ stroke: 'var(--grid)' }} strokeWidth={1} />
+              <text x={xPos(v)} y={PAD.top + ph + 14} textAnchor="middle" fontSize={8} style={{ fill: 'var(--dim-hi)' }}>{fmtAge(v)}</text>
             </g>
           ))}
 
           {/* axes */}
-          <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + ph} stroke="#222" strokeWidth={1} />
-          <line x1={PAD.left} y1={PAD.top + ph} x2={PAD.left + pw} y2={PAD.top + ph} stroke="#222" strokeWidth={1} />
+          <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + ph} style={{ stroke: 'var(--border)' }} strokeWidth={1} />
+          <line x1={PAD.left} y1={PAD.top + ph} x2={PAD.left + pw} y2={PAD.top + ph} style={{ stroke: 'var(--border)' }} strokeWidth={1} />
 
           {/* axis labels */}
-          <text x={PAD.left + pw / 2} y={H - 2} textAnchor="middle" fontSize={8} fill="#3a3a3a" letterSpacing="1">PACKAGE AGE</text>
-          <text x={11} y={PAD.top + ph / 2} textAnchor="middle" fontSize={8} fill="#3a3a3a" letterSpacing="1"
+          <text x={PAD.left + pw / 2} y={H - 2} textAnchor="middle" fontSize={8} style={{ fill: 'var(--chart-label)' }} letterSpacing="1">PACKAGE AGE</text>
+          <text x={11} y={PAD.top + ph / 2} textAnchor="middle" fontSize={8} style={{ fill: 'var(--chart-label)' }} letterSpacing="1"
             transform={`rotate(-90,11,${PAD.top + ph / 2})`}>DL/MO</text>
 
           {/* points */}
@@ -400,12 +403,13 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
             return (
               <g key={p.name} style={{ cursor: 'pointer' }} onClick={() => togglePkg(p.name)}>
                 {p.hasCve && (
-                  <circle cx={px} cy={py} r={11} fill="none" stroke={color} strokeWidth={1}
+                  <circle cx={px} cy={py} r={11} fill="none" style={{ stroke: color }} strokeWidth={1}
                     opacity={dimmed ? 0.08 : 0.35} />
                 )}
                 <circle cx={px} cy={py} r={5.5}
-                  fill={color} fillOpacity={dimmed ? 0.1 : 0.85}
-                  stroke={dimmed ? '#000' : color} strokeWidth={dimmed ? 0.5 : 1}
+                  style={{ fill: color, stroke: dimmed ? 'var(--bg)' : color }}
+                  fillOpacity={dimmed ? 0.1 : 0.85}
+                  strokeWidth={dimmed ? 0.5 : 1}
                   onMouseEnter={e => {
                     const svg  = (e.currentTarget.closest('svg') as SVGSVGElement).getBoundingClientRect();
                     const rect = e.currentTarget.getBoundingClientRect();
@@ -421,14 +425,14 @@ function RiskScatter({ results, active, onFilter }: { results: ScanResult[]; act
         {tip && (
           <div style={{
             position: 'absolute', left: tip.x, top: tip.y,
-            background: '#0e0e0e', border: '1px solid #222',
+            background: 'var(--surface-deep)', border: '1px solid var(--border)',
             padding: '6px 10px', pointerEvents: 'none', zIndex: 20, whiteSpace: 'nowrap',
           }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>{tip.p.name}</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--fg)', margin: 0 }}>{tip.p.name}</p>
             <p style={{ fontSize: 11, color: SEV_COLOR[tip.p.severity], margin: '2px 0 0' }}>
               {tip.p.severity.toUpperCase()}{tip.p.hasCve ? '  ·  CVEs' : ''}
             </p>
-            <p style={{ fontSize: 11, color: '#555', margin: '1px 0 0' }}>
+            <p style={{ fontSize: 11, color: 'var(--dim-lo)', margin: '1px 0 0' }}>
               {fmtAge(tip.p.ageDays)} old  ·  {fmtDl(tip.p.downloads)}/mo
             </p>
           </div>
@@ -453,14 +457,14 @@ export default function ScanCharts({
     <div className="mt-6 mb-2 flex flex-col gap-3">
       {filter && (
         <div className="flex items-center justify-between px-1">
-          <p style={{ fontSize: 11, color: '#555' }}>
+          <p style={{ fontSize: 11, color: 'var(--dim-lo)' }}>
             Showing filtered results —
-            <span style={{ color: '#888' }}> {results.filter(r => matchesFilter(r, filter)).length} of {results.length} packages</span>
+            <span style={{ color: 'var(--dim-label)' }}> {results.filter(r => matchesFilter(r, filter)).length} of {results.length} packages</span>
           </p>
           <button
             onClick={() => onFilter(null)}
             style={{
-              fontSize: 11, color: '#888', background: 'none',
+              fontSize: 11, color: 'var(--dim-label)', background: 'none',
               border: '1px solid var(--border)', padding: '3px 10px', cursor: 'pointer', letterSpacing: '0.05em',
             }}
           >

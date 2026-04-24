@@ -156,13 +156,13 @@ export default function ScannerSection() {
               >
                 <span>
                   SHARED REPORT
-                  <span style={{ color: '#444', marginLeft: 8 }}>· results loaded from link</span>
+                  <span style={{ color: 'var(--dim-mid)', marginLeft: 8 }}>· results loaded from link</span>
                 </span>
                 <button
                   onClick={() => setSharedDismissed(true)}
-                  style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: 11, letterSpacing: '0.05em' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--dim-lo)', cursor: 'pointer', fontSize: 11, letterSpacing: '0.05em' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = '#555')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--dim-lo)')}
                 >
                   DISMISS ×
                 </button>

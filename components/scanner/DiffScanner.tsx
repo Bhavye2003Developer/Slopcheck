@@ -62,10 +62,10 @@ const STATUS_LABEL: Record<DiffRow['status'], string> = {
 };
 const STATUS_COLOR: Record<DiffRow['status'], string> = {
   added: 'var(--critical)',
-  removed: '#555',
+  removed: 'var(--dim-lo)',
   escalated: 'var(--warning)',
   improved: 'var(--clean)',
-  stable: '#444',
+  stable: 'var(--dim-mid)',
 };
 
 function ManifestPane({
@@ -76,7 +76,7 @@ function ManifestPane({
   detected: string | null;
 }) {
   return (
-    <div className="flex flex-col" style={{ border: '1px solid var(--border)', background: '#0f0f0f' }}>
+    <div className="flex flex-col" style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}>
       <div className="flex flex-wrap items-center gap-2 px-3 py-2 border-b text-xs" style={{ borderColor: 'var(--border)' }}>
         <span className="tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>{label}</span>
         {detected && (
@@ -209,7 +209,7 @@ export default function DiffScanner() {
             {/* Header */}
             <div
               className="grid text-xs tracking-widest px-3 py-2 border-b"
-              style={{ gridTemplateColumns: '90px 1fr 80px 80px', borderColor: 'var(--border)', background: '#111', color: 'var(--muted)', position: 'sticky', top: 0 }}
+              style={{ gridTemplateColumns: '90px 1fr 80px 80px', borderColor: 'var(--border)', background: 'var(--panel)', color: 'var(--muted)', position: 'sticky', top: 0 }}
             >
               <span>STATUS</span>
               <span>PACKAGE</span>
@@ -232,10 +232,10 @@ export default function DiffScanner() {
                     {row.after?.package.version ?? row.before?.package.version ?? ''}
                   </span>
                 </span>
-                <span style={{ color: row.before ? SEVERITY_COLOR[row.before.severity] : '#333' }}>
+                <span style={{ color: row.before ? SEVERITY_COLOR[row.before.severity] : 'var(--dim-hi)' }}>
                   {row.before ? row.before.severity.toUpperCase() : '—'}
                 </span>
-                <span style={{ color: row.after ? SEVERITY_COLOR[row.after.severity] : '#333' }}>
+                <span style={{ color: row.after ? SEVERITY_COLOR[row.after.severity] : 'var(--dim-hi)' }}>
                   {row.after ? row.after.severity.toUpperCase() : '—'}
                 </span>
               </div>
