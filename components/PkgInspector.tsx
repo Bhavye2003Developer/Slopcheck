@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { detectAndParse } from '@/lib/parsers';
 import { runScan } from '@/lib/scanner';
 import type { ScanResult } from '@/lib/types';
@@ -26,6 +26,17 @@ interface RichMeta {
   totalVersions?: number;
   installCmd: string;
   registryUrl: string;
+  license?: string;
+  deprecated?: string;
+  directDeps?: number;
+  publishedBy?: string;
+  lastPublished?: string;
+}
+
+interface BundleSize {
+  raw: number;
+  gzip: number;
+  deps: number;
 }
 
 function parsePkgInput(input: string): { name: string; version: string | null } {
@@ -63,6 +74,13 @@ async function fetchNpmMeta(name: string): Promise<RichMeta | null> {
     const pkgData = d.versions?.[latest] ?? {};
     const repoRaw = typeof pkgData.repository === 'object' ? pkgData.repository?.url : undefined;
     const repo = repoRaw?.replace(/^git\+/, '').replace(/\.git$/, '');
+    const time = d.time as Record<string, string> | undefined;
+    const lastPublished = latest && time ? time[latest] : undefined;
+    const rawLicense = pkgData.license ?? d.license;
+    const license = rawLicense ? String(rawLicense) : undefined;
+    const deprecated = pkgData.deprecated ? String(pkgData.deprecated) : undefined;
+    const directDeps = Object.keys(pkgData.dependencies ?? {}).length;
+    const publishedBy = (pkgData._npmUser as { name?: string } | undefined)?.name;
     return {
       name: d.name,
       version: latest,
@@ -74,6 +92,11 @@ async function fetchNpmMeta(name: string): Promise<RichMeta | null> {
       totalVersions: Object.keys(d.versions ?? {}).length,
       installCmd: `npm install ${name}`,
       registryUrl: `https://www.npmjs.com/package/${name}`,
+      license,
+      deprecated,
+      directDeps,
+      publishedBy,
+      lastPublished,
     };
   } catch { return null; }
 }
@@ -85,6 +108,12 @@ async function fetchPypiMeta(name: string): Promise<RichMeta | null> {
     const d = await r.json();
     const info = d.info;
     const keywords = info.keywords ? info.keywords.split(/[,\s]+/).filter(Boolean).slice(0, 8) : [];
+    let license: string | undefined = info.license ? String(info.license).split('\n')[0].slice(0, 60) : undefined;
+    const licClassifier = (info.classifiers as string[] | undefined)?.find((c: string) => c.startsWith('License :: OSI Approved ::'));
+    if (licClassifier) license = licClassifier.split(' :: ').pop();
+    const releases = d.releases as Record<string, Array<{ upload_time: string }>> | undefined;
+    const lastPublished = releases?.[info.version]?.[0]?.upload_time;
+    const directDeps = Array.isArray(info.requires_dist) ? (info.requires_dist as string[]).length : undefined;
     return {
       name: info.name,
       version: info.version,
@@ -94,6 +123,9 @@ async function fetchPypiMeta(name: string): Promise<RichMeta | null> {
       totalVersions: Object.keys(d.releases ?? {}).length,
       installCmd: `pip install ${name}`,
       registryUrl: `https://pypi.org/project/${name}/`,
+      license,
+      directDeps,
+      lastPublished,
     };
   } catch { return null; }
 }
@@ -115,6 +147,8 @@ async function fetchCargoMeta(name: string): Promise<RichMeta | null> {
       totalVersions: d.versions?.length,
       installCmd: `cargo add ${name}`,
       registryUrl: `https://crates.io/crates/${name}`,
+      license: c.license as string | undefined,
+      lastPublished: c.updated_at as string | undefined,
     };
   } catch { return null; }
 }
@@ -124,6 +158,8 @@ async function fetchRubyMeta(name: string): Promise<RichMeta | null> {
     const r = await fetch(`https://rubygems.org/api/v1/gems/${name}.json`);
     if (!r.ok) return null;
     const d = await r.json();
+    const licenses = d.licenses as string[] | undefined;
+    const runtimeDeps = (d.dependencies as { runtime?: unknown[] } | undefined)?.runtime;
     return {
       name: d.name,
       version: d.version,
@@ -132,6 +168,9 @@ async function fetchRubyMeta(name: string): Promise<RichMeta | null> {
       repository: d.source_code_uri,
       installCmd: `gem install ${name}`,
       registryUrl: `https://rubygems.org/gems/${name}`,
+      license: licenses && licenses.length > 0 ? licenses.join(' / ') : undefined,
+      directDeps: Array.isArray(runtimeDeps) ? runtimeDeps.length : undefined,
+      lastPublished: d.version_created_at as string | undefined,
     };
   } catch { return null; }
 }
@@ -162,6 +201,16 @@ async function fetchRichMeta(name: string, eco: Eco): Promise<RichMeta | null> {
   }
 }
 
+async function fetchBundleSize(name: string): Promise<BundleSize | null> {
+  try {
+    const r = await fetch(`https://bundlephobia.com/api/size?package=${encodeURIComponent(name)}`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (typeof d.size !== 'number') return null;
+    return { raw: d.size, gzip: d.gzip, deps: d.dependencyCount };
+  } catch { return null; }
+}
+
 function fmtDownloads(n?: number): string {
   if (n === undefined) return '—';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M/mo`;
@@ -175,6 +224,30 @@ function fmtAge(iso?: string): string {
   if (days < 30) return `${Math.floor(days)}d`;
   if (days < 365) return `${Math.floor(days / 30)}mo`;
   return `${(days / 365).toFixed(1)}yr`;
+}
+
+function fmtRelTime(iso?: string): string {
+  if (!iso) return '—';
+  const days = (Date.now() - new Date(iso).getTime()) / 86400000;
+  if (days < 1) return 'today';
+  if (days < 2) return 'yesterday';
+  if (days < 30) return `${Math.floor(days)}d ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}yr ago`;
+}
+
+function fmtBytes(n: number): string {
+  if (n >= 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  if (n >= 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${n} B`;
+}
+
+function licenseColor(lic?: string): string {
+  if (!lic) return 'var(--muted)';
+  const l = lic.toUpperCase();
+  if (/\b(MIT|ISC|BSD|APACHE|0BSD|UNLICENSE|CC0|WTFPL|ZLIB)\b/.test(l)) return 'var(--clean)';
+  if (/\b(GPL|LGPL|AGPL|MPL|EUPL|CDDL|EPL)\b/.test(l)) return 'var(--warning)';
+  return 'var(--muted)';
 }
 
 function cveHref(id: string): string {
@@ -218,13 +291,17 @@ const FLAG_DESC: Record<string, string> = {
   has_cve_medium: 'KNOWN MEDIUM CVEs',
 };
 
-function StatCell({ value, label }: { value: string | number; label: string }) {
+function StatCell({ value, label, color }: { value: string | number; label: string; color?: string }) {
   return (
-    <div>
-      <div className="text-xl font-bold leading-none" style={{ color: 'var(--fg)', fontFamily: 'var(--font-mono)' }}>
+    <div className="min-w-0">
+      <div
+        className="text-base sm:text-xl font-bold leading-none truncate"
+        style={{ color: color ?? 'var(--fg)', fontFamily: 'var(--font-mono)' }}
+        title={String(value)}
+      >
         {value}
       </div>
-      <div className="text-xs tracking-widest mt-1" style={{ color: 'var(--muted)' }}>{label}</div>
+      <div className="text-xs tracking-widest mt-1 whitespace-nowrap" style={{ color: 'var(--muted)' }}>{label}</div>
     </div>
   );
 }
@@ -245,7 +322,16 @@ function ExtLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult; cvesPending: boolean }) {
+/* PkgCard renders without an outer border — the modal container owns the border */
+function PkgCard({
+  rich, scan, cvesPending, bundleSize, bundleSizeLoading,
+}: {
+  rich: RichMeta;
+  scan: ScanResult;
+  cvesPending: boolean;
+  bundleSize: BundleSize | null;
+  bundleSizeLoading: boolean;
+}) {
   const [cmdCopied, setCmdCopied] = useState(false);
 
   function copyCmd() {
@@ -260,43 +346,64 @@ function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult
   const flagDesc = FLAG_DESC[scan.flag] ?? scan.flag;
   const totalCves = scan.cves?.length ?? 0;
   const latestAvailable = scan.meta.latestVersion && scan.meta.latestVersion !== scan.package.version;
+  const isNpm = scan.package.ecosystem === 'npm';
+  const lastRelease = rich.lastPublished ?? scan.meta.updatedAt;
 
   return (
-    <div style={{ border: `2px solid ${sevColor}` }}>
+    <>
       {/* Severity banner */}
       <div
-        className="px-5 py-2 flex items-center justify-between text-xs tracking-widest font-bold"
+        className="px-4 sm:px-5 py-2 flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1 text-xs tracking-widest font-bold"
         style={{ background: sevColor, color: 'var(--bg)' }}
       >
-        <span>{sevLabel}</span>
-        <span style={{ opacity: 0.75, fontWeight: 400 }}>{scan.reason}</span>
+        <span className="shrink-0">{sevLabel}</span>
+        <span className="opacity-75 font-normal text-xs leading-snug">{scan.reason}</span>
       </div>
 
+      {/* Deprecated warning */}
+      {rich.deprecated && (
+        <div
+          className="px-4 sm:px-5 py-2 text-xs tracking-widest border-b"
+          style={{ background: 'rgba(255,160,0,0.12)', borderColor: 'var(--warning)', color: 'var(--warning)' }}
+        >
+          <span className="font-bold">DEPRECATED</span>
+          {rich.deprecated.toLowerCase() !== 'true' && (
+            <span className="opacity-75 ml-2 break-words">— {rich.deprecated}</span>
+          )}
+        </div>
+      )}
+
       {/* Name + version + description */}
-      <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-        <div className="flex flex-wrap items-baseline gap-3">
-          <h2 className="text-3xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-mono)' }}>
+      <div className="px-4 sm:px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+        <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight break-all" style={{ fontFamily: 'var(--font-mono)' }}>
             {rich.name}
           </h2>
-          <span className="text-sm" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+          <span className="text-sm shrink-0" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
             {rich.version || scan.package.version || ''}
           </span>
           {latestAvailable && (
-            <span className="text-xs px-2 py-0.5" style={{ border: '1px solid var(--warning)', color: 'var(--warning)', fontFamily: 'var(--font-mono)' }}>
+            <span
+              className="text-xs px-2 py-0.5 shrink-0"
+              style={{ border: '1px solid var(--warning)', color: 'var(--warning)', fontFamily: 'var(--font-mono)' }}
+            >
               UPDATE → {scan.meta.latestVersion}
             </span>
           )}
         </div>
         {rich.description && (
-          <p className="mt-3 text-sm leading-relaxed" style={{ color: 'var(--muted)', maxWidth: 680 }}>
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
             {rich.description}
           </p>
         )}
         {rich.keywords && rich.keywords.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">
             {rich.keywords.map(kw => (
-              <span key={kw} className="text-xs px-2 py-0.5"
-                style={{ border: '1px solid var(--border)', color: 'var(--dim-lo)', fontFamily: 'var(--font-mono)' }}>
+              <span
+                key={kw}
+                className="text-xs px-2 py-0.5"
+                style={{ border: '1px solid var(--border)', color: 'var(--dim-lo)', fontFamily: 'var(--font-mono)' }}
+              >
                 {kw}
               </span>
             ))}
@@ -304,13 +411,19 @@ function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult
         )}
       </div>
 
-      {/* Stats */}
-      <div className="px-5 py-4 flex flex-wrap gap-8 border-b" style={{ borderColor: 'var(--border)' }}>
+      {/* Stats grid — wraps naturally on narrow screens */}
+      <div className="px-4 sm:px-5 py-4 flex flex-wrap gap-x-6 gap-y-4 sm:gap-x-8 border-b" style={{ borderColor: 'var(--border)' }}>
         {scan.meta.monthlyDownloads !== undefined && (
           <StatCell value={fmtDownloads(scan.meta.monthlyDownloads)} label="DOWNLOADS" />
         )}
         {scan.meta.createdAt && (
           <StatCell value={fmtAge(scan.meta.createdAt)} label="AGE" />
+        )}
+        {lastRelease && (
+          <StatCell value={fmtRelTime(lastRelease)} label="LAST RELEASE" />
+        )}
+        {rich.license && (
+          <StatCell value={rich.license} label="LICENSE" color={licenseColor(rich.license)} />
         )}
         {rich.maintainers !== undefined && (
           <StatCell value={rich.maintainers} label="MAINTAINERS" />
@@ -318,25 +431,59 @@ function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult
         {rich.totalVersions !== undefined && (
           <StatCell value={rich.totalVersions} label="VERSIONS" />
         )}
+        {rich.directDeps !== undefined && (
+          <StatCell value={rich.directDeps} label="DIRECT DEPS" />
+        )}
+        {rich.publishedBy && (
+          <StatCell value={rich.publishedBy} label="PUBLISHED BY" />
+        )}
       </div>
 
+      {/* Bundle size — npm only, parallel fetch */}
+      {isNpm && (
+        <div className="px-4 sm:px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+          <p className="text-xs tracking-widest mb-3" style={{ color: 'var(--muted)' }}>BUNDLE SIZE</p>
+          {bundleSizeLoading && !bundleSize ? (
+            <p className="text-xs tracking-widest" style={{ color: 'var(--dim-lo)' }}>ANALYZING...</p>
+          ) : bundleSize ? (
+            <div className="flex flex-wrap gap-x-6 gap-y-4 sm:gap-x-8">
+              <StatCell value={fmtBytes(bundleSize.gzip)} label="GZIP" />
+              <StatCell value={fmtBytes(bundleSize.raw)} label="MINIFIED" />
+              <StatCell value={bundleSize.deps} label="TOTAL DEPS" />
+            </div>
+          ) : (
+            <p className="text-xs tracking-widest" style={{ color: 'var(--dim-lo)' }}>
+              NOT AVAILABLE (server-side or native package)
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Install command */}
-      <div className="px-5 py-3 flex items-center justify-between gap-4 border-b text-xs"
-        style={{ borderColor: 'var(--border)' }}>
-        <code style={{ color: 'var(--fg)', opacity: 0.8, fontFamily: 'var(--font-mono)' }}>
+      <div
+        className="px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b text-xs"
+        style={{ borderColor: 'var(--border)' }}
+      >
+        <code className="overflow-x-auto" style={{ color: 'var(--fg)', opacity: 0.8, fontFamily: 'var(--font-mono)' }}>
           $ {rich.installCmd}
         </code>
         <button
           onClick={copyCmd}
-          className="shrink-0 px-3 py-1 tracking-widest"
-          style={{ border: '1px solid var(--border)', color: cmdCopied ? 'var(--clean)' : 'var(--muted)', cursor: 'pointer', background: 'none' }}
+          className="self-start sm:self-auto shrink-0 px-3 py-1 tracking-widest"
+          style={{
+            border: '1px solid var(--border)',
+            color: cmdCopied ? 'var(--clean)' : 'var(--muted)',
+            cursor: 'pointer',
+            background: 'none',
+            fontFamily: 'var(--font-mono)',
+          }}
         >
           {cmdCopied ? 'COPIED!' : 'COPY'}
         </button>
       </div>
 
-      {/* Flag + install script */}
-      <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+      {/* Security flag + install script */}
+      <div className="px-4 sm:px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <p className="text-xs tracking-widest mb-2" style={{ color: 'var(--muted)' }}>SECURITY FLAG</p>
         <p className="text-xs font-bold tracking-widest" style={{ color: sevColor, fontFamily: 'var(--font-mono)' }}>
           {flagDesc}
@@ -344,8 +491,10 @@ function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult
         {scan.meta.hasPostInstall && scan.meta.postInstallScript && (
           <div className="mt-3">
             <p className="text-xs tracking-widest mb-1" style={{ color: 'var(--warning)' }}>INSTALL SCRIPT</p>
-            <pre className="text-xs leading-relaxed overflow-x-auto"
-              style={{ color: 'var(--fg)', opacity: 0.7, fontFamily: 'var(--font-mono)', maxHeight: 100 }}>
+            <pre
+              className="text-xs leading-relaxed overflow-x-auto"
+              style={{ color: 'var(--fg)', opacity: 0.7, fontFamily: 'var(--font-mono)', maxHeight: 100 }}
+            >
               {scan.meta.postInstallScript}
             </pre>
           </div>
@@ -353,7 +502,7 @@ function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult
       </div>
 
       {/* CVEs */}
-      <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+      <div className="px-4 sm:px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <p className="text-xs tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
           CVEs{totalCves > 0 && <span style={{ color: 'var(--critical)', marginLeft: 6 }}>({totalCves})</span>}
         </p>
@@ -388,7 +537,7 @@ function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult
                   )}
                 </div>
                 {cve.summary && (
-                  <p className="mt-1" style={{ color: 'var(--dim-lo)', maxWidth: 640 }}>{cve.summary}</p>
+                  <p className="mt-1 leading-snug" style={{ color: 'var(--dim-lo)' }}>{cve.summary}</p>
                 )}
               </div>
             ))}
@@ -396,13 +545,13 @@ function PkgCard({ rich, scan, cvesPending }: { rich: RichMeta; scan: ScanResult
         )}
       </div>
 
-      {/* Links */}
-      <div className="px-5 py-4 flex flex-wrap gap-5">
+      {/* External links */}
+      <div className="px-4 sm:px-5 py-4 flex flex-wrap gap-4 sm:gap-5">
         <ExtLink href={rich.registryUrl} label="REGISTRY" />
         {rich.homepage && <ExtLink href={rich.homepage} label="HOMEPAGE" />}
         {rich.repository && <ExtLink href={rich.repository} label="SOURCE" />}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -415,8 +564,36 @@ export default function PkgInspector() {
   const [scan, setScan] = useState<ScanResult | null>(null);
   const [cvesPending, setCvesPending] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [bundleSize, setBundleSize] = useState<BundleSize | null>(null);
+  const [bundleSizeLoading, setBundleSizeLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const ecoMeta = ECOSYSTEMS.find(e => e.value === eco)!;
+
+  function closeModal() {
+    setModalOpen(false);
+  }
+
+  // Focus the close button when modal opens
+  useEffect(() => {
+    if (modalOpen) {
+      setTimeout(() => closeButtonRef.current?.focus(), 50);
+    }
+  }, [modalOpen]);
+
+  // Escape key closes modal; scroll lock while open
+  useEffect(() => {
+    if (!modalOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeModal(); };
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [modalOpen]);
 
   async function handleLookup() {
     const t = input.trim();
@@ -427,7 +604,10 @@ export default function PkgInspector() {
     setScan(null);
     setCvesPending(true);
     setNotFound(false);
+    setBundleSize(null);
+    setBundleSizeLoading(eco === 'npm');
     setLoading(true);
+    setModalOpen(true);
 
     const { name, version } = parsePkgInput(t);
     const manifest = buildManifest(name, version, eco);
@@ -440,8 +620,14 @@ export default function PkgInspector() {
     }
 
     try {
-      // Kick off rich meta and scan concurrently
       const richPromise = fetchRichMeta(name, eco).then(r => { setRich(r); return r; });
+
+      // Bundle size runs fully in parallel — fire and forget
+      if (eco === 'npm') {
+        fetchBundleSize(name)
+          .then(bs => { setBundleSize(bs); setBundleSizeLoading(false); })
+          .catch(() => setBundleSizeLoading(false));
+      }
 
       await runScan(packages, {
         onResult: result => {
@@ -464,11 +650,22 @@ export default function PkgInspector() {
     }
   }
 
+  // Modal border color follows severity when data is available
+  const modalBorder = scan?.meta.exists
+    ? `2px solid ${SEV_COLOR[scan.severity] ?? 'var(--border)'}`
+    : '1px solid var(--border)';
+
+  const pkgName = input.trim() ? parsePkgInput(input.trim()).name : '';
+
   return (
     <>
-      {/* Input panel */}
+      {/* ── Input panel ── */}
       <div style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}>
-        <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b text-xs" style={{ borderColor: 'var(--border)' }}>
+        {/* Ecosystem selector */}
+        <div
+          className="flex flex-wrap items-center gap-2 px-4 py-3 border-b text-xs"
+          style={{ borderColor: 'var(--border)' }}
+        >
           <span className="tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>ECOSYSTEM</span>
           <div className="flex gap-1 flex-wrap">
             {ECOSYSTEMS.map(e => (
@@ -489,6 +686,8 @@ export default function PkgInspector() {
             ))}
           </div>
         </div>
+
+        {/* Search row */}
         <div className="flex flex-wrap items-center gap-3 px-4 py-4">
           <input
             type="text"
@@ -501,14 +700,14 @@ export default function PkgInspector() {
               color: 'var(--fg)', caretColor: 'var(--fg)',
               fontFamily: 'var(--font-mono)',
               border: '1px solid var(--border)', padding: '8px 12px',
-              minWidth: 220,
+              minWidth: 180,
             }}
             spellCheck={false}
           />
           <button
             onClick={handleLookup}
             disabled={!input.trim() || loading}
-            className="px-6 py-2 text-xs font-bold tracking-widest transition-opacity disabled:opacity-30 shrink-0"
+            className="flex-1 sm:flex-none px-6 py-2 text-xs font-bold tracking-widest transition-opacity disabled:opacity-30 shrink-0"
             style={{ background: 'var(--fg)', color: 'var(--bg)', fontFamily: 'var(--font-mono)' }}
           >
             {loading ? 'LOOKING UP...' : 'LOOKUP →'}
@@ -516,30 +715,95 @@ export default function PkgInspector() {
         </div>
       </div>
 
-      {error && (
-        <p className="mt-4 text-xs tracking-widest" style={{ color: 'var(--critical)' }}>{error}</p>
-      )}
+      {/* ── Modal ── */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+          style={{ background: 'rgba(0,0,0,0.88)' }}
+          onClick={closeModal}
+        >
+          {/* Centering wrapper — stopPropagation so clicks inside card don't close */}
+          <div
+            className="flex justify-center px-3 py-6 sm:px-5 sm:py-10 md:py-16 min-h-full"
+            onClick={e => e.stopPropagation()}
+          >
+            <div
+              className="w-full max-w-2xl self-start"
+              style={{ border: modalBorder }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={pkgName ? `Package details: ${pkgName}` : 'Package details'}
+            >
+              {/* Modal header */}
+              <div
+                className="flex items-center justify-between px-4 sm:px-5 py-3 border-b text-xs"
+                style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
+              >
+                <span className="tracking-widest truncate mr-3" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                  {pkgName || '—'}{' '}
+                  <span style={{ opacity: 0.5 }}>— {eco.toUpperCase()}</span>
+                </span>
+                <button
+                  ref={closeButtonRef}
+                  onClick={closeModal}
+                  className="shrink-0 px-3 py-1 text-xs tracking-widest"
+                  style={{
+                    border: '1px solid var(--border)',
+                    color: 'var(--muted)',
+                    cursor: 'pointer',
+                    background: 'none',
+                    fontFamily: 'var(--font-mono)',
+                  }}
+                >
+                  ESC / CLOSE
+                </button>
+              </div>
 
-      {loading && !scan && (
-        <div className="mt-6 py-10 text-center text-xs tracking-widest"
-          style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}>
-          CHECKING REGISTRY...
-        </div>
-      )}
+              {/* Loading state */}
+              {loading && !scan && (
+                <div
+                  className="py-20 text-center text-xs tracking-widest"
+                  style={{ color: 'var(--muted)', background: 'var(--surface)' }}
+                >
+                  CHECKING REGISTRY...
+                </div>
+              )}
 
-      {!loading && notFound && (
-        <div className="mt-6 py-10 text-center" style={{ border: '1px solid var(--critical)' }}>
-          <p className="text-3xl font-bold tracking-widest mb-2" style={{ color: 'var(--critical)' }}>NOT FOUND</p>
-          <p className="text-xs tracking-widest" style={{ color: 'var(--muted)' }}>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>{parsePkgInput(input.trim()).name}</span>
-            {' '}does not exist on the {eco} registry
-          </p>
-        </div>
-      )}
+              {/* Error */}
+              {error && (
+                <div className="px-4 sm:px-5 py-5 text-xs tracking-widest" style={{ color: 'var(--critical)' }}>
+                  {error}
+                </div>
+              )}
 
-      {scan && scan.meta.exists && rich && (
-        <div className="mt-6">
-          <PkgCard rich={rich} scan={scan} cvesPending={cvesPending} />
+              {/* Not found */}
+              {!loading && !error && notFound && (
+                <div className="py-16 sm:py-20 text-center px-4" style={{ background: 'var(--bg)' }}>
+                  <p
+                    className="text-2xl sm:text-3xl font-bold tracking-widest mb-3"
+                    style={{ color: 'var(--critical)' }}
+                  >
+                    NOT FOUND
+                  </p>
+                  <p className="text-xs tracking-widest" style={{ color: 'var(--muted)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)' }}>{pkgName}</span>
+                    {' '}does not exist on the {eco} registry
+                  </p>
+                </div>
+              )}
+
+              {/* Package card */}
+              {scan && scan.meta.exists && rich && (
+                <PkgCard
+                  rich={rich}
+                  scan={scan}
+                  cvesPending={cvesPending}
+                  bundleSize={bundleSize}
+                  bundleSizeLoading={bundleSizeLoading}
+                />
+              )}
+            </div>
+          </div>
         </div>
       )}
     </>
