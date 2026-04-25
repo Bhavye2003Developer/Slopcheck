@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { detectAndParse } from '@/lib/parsers';
 import { runScan } from '@/lib/scanner';
 import type { ScanResult } from '@/lib/types';
@@ -566,34 +566,8 @@ export default function PkgInspector() {
   const [notFound, setNotFound] = useState(false);
   const [bundleSize, setBundleSize] = useState<BundleSize | null>(null);
   const [bundleSizeLoading, setBundleSizeLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
 
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const ecoMeta = ECOSYSTEMS.find(e => e.value === eco)!;
-
-  function closeModal() {
-    setModalOpen(false);
-  }
-
-  // Focus the close button when modal opens
-  useEffect(() => {
-    if (modalOpen) {
-      setTimeout(() => closeButtonRef.current?.focus(), 50);
-    }
-  }, [modalOpen]);
-
-  // Escape key closes modal; scroll lock while open
-  useEffect(() => {
-    if (!modalOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeModal(); };
-    window.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [modalOpen]);
 
   async function handleLookup() {
     const t = input.trim();
@@ -607,7 +581,6 @@ export default function PkgInspector() {
     setBundleSize(null);
     setBundleSizeLoading(eco === 'npm');
     setLoading(true);
-    setModalOpen(true);
 
     const { name, version } = parsePkgInput(t);
     const manifest = buildManifest(name, version, eco);
@@ -622,7 +595,6 @@ export default function PkgInspector() {
     try {
       const richPromise = fetchRichMeta(name, eco).then(r => { setRich(r); return r; });
 
-      // Bundle size runs fully in parallel — fire and forget
       if (eco === 'npm') {
         fetchBundleSize(name)
           .then(bs => { setBundleSize(bs); setBundleSizeLoading(false); })
@@ -650,8 +622,7 @@ export default function PkgInspector() {
     }
   }
 
-  // Modal border color follows severity when data is available
-  const modalBorder = scan?.meta.exists
+  const cardBorder = scan?.meta.exists
     ? `2px solid ${SEV_COLOR[scan.severity] ?? 'var(--border)'}`
     : '1px solid var(--border)';
 
@@ -659,9 +630,8 @@ export default function PkgInspector() {
 
   return (
     <>
-      {/* ── Input panel ── */}
+      {/* Input panel */}
       <div style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}>
-        {/* Ecosystem selector */}
         <div
           className="flex flex-wrap items-center gap-2 px-4 py-3 border-b text-xs"
           style={{ borderColor: 'var(--border)' }}
@@ -687,7 +657,6 @@ export default function PkgInspector() {
           </div>
         </div>
 
-        {/* Search row */}
         <div className="flex flex-wrap items-center gap-3 px-4 py-4">
           <input
             type="text"
@@ -715,95 +684,40 @@ export default function PkgInspector() {
         </div>
       </div>
 
-      {/* ── Modal ── */}
-      {modalOpen && (
+      {error && (
+        <p className="mt-4 text-xs tracking-widest" style={{ color: 'var(--critical)' }}>{error}</p>
+      )}
+
+      {loading && !scan && (
         <div
-          className="fixed inset-0 z-50 overflow-y-auto"
-          style={{ background: 'rgba(0,0,0,0.88)' }}
-          onClick={closeModal}
+          className="mt-6 py-16 text-center text-xs tracking-widest"
+          style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}
         >
-          {/* Centering wrapper — stopPropagation so clicks inside card don't close */}
-          <div
-            className="flex justify-center px-3 py-6 sm:px-5 sm:py-10 md:py-16 min-h-full"
-            onClick={e => e.stopPropagation()}
-          >
-            <div
-              className="w-full max-w-2xl self-start"
-              style={{ border: modalBorder }}
-              role="dialog"
-              aria-modal="true"
-              aria-label={pkgName ? `Package details: ${pkgName}` : 'Package details'}
-            >
-              {/* Modal header */}
-              <div
-                className="flex items-center justify-between px-4 sm:px-5 py-3 border-b text-xs"
-                style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
-              >
-                <span className="tracking-widest truncate mr-3" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                  {pkgName || '—'}{' '}
-                  <span style={{ opacity: 0.5 }}>— {eco.toUpperCase()}</span>
-                </span>
-                <button
-                  ref={closeButtonRef}
-                  onClick={closeModal}
-                  className="shrink-0 px-3 py-1 text-xs tracking-widest"
-                  style={{
-                    border: '1px solid var(--border)',
-                    color: 'var(--muted)',
-                    cursor: 'pointer',
-                    background: 'none',
-                    fontFamily: 'var(--font-mono)',
-                  }}
-                >
-                  ESC / CLOSE
-                </button>
-              </div>
+          CHECKING REGISTRY...
+        </div>
+      )}
 
-              {/* Loading state */}
-              {loading && !scan && (
-                <div
-                  className="py-20 text-center text-xs tracking-widest"
-                  style={{ color: 'var(--muted)', background: 'var(--surface)' }}
-                >
-                  CHECKING REGISTRY...
-                </div>
-              )}
+      {!loading && !error && notFound && (
+        <div className="mt-6 py-16 text-center" style={{ border: '2px solid var(--critical)' }}>
+          <p className="text-2xl sm:text-3xl font-bold tracking-widest mb-3" style={{ color: 'var(--critical)' }}>
+            NOT FOUND
+          </p>
+          <p className="text-xs tracking-widest" style={{ color: 'var(--muted)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)' }}>{pkgName}</span>
+            {' '}does not exist on the {eco} registry
+          </p>
+        </div>
+      )}
 
-              {/* Error */}
-              {error && (
-                <div className="px-4 sm:px-5 py-5 text-xs tracking-widest" style={{ color: 'var(--critical)' }}>
-                  {error}
-                </div>
-              )}
-
-              {/* Not found */}
-              {!loading && !error && notFound && (
-                <div className="py-16 sm:py-20 text-center px-4" style={{ background: 'var(--bg)' }}>
-                  <p
-                    className="text-2xl sm:text-3xl font-bold tracking-widest mb-3"
-                    style={{ color: 'var(--critical)' }}
-                  >
-                    NOT FOUND
-                  </p>
-                  <p className="text-xs tracking-widest" style={{ color: 'var(--muted)' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)' }}>{pkgName}</span>
-                    {' '}does not exist on the {eco} registry
-                  </p>
-                </div>
-              )}
-
-              {/* Package card */}
-              {scan && scan.meta.exists && rich && (
-                <PkgCard
-                  rich={rich}
-                  scan={scan}
-                  cvesPending={cvesPending}
-                  bundleSize={bundleSize}
-                  bundleSizeLoading={bundleSizeLoading}
-                />
-              )}
-            </div>
-          </div>
+      {scan && scan.meta.exists && rich && (
+        <div className="mt-6" style={{ border: cardBorder }}>
+          <PkgCard
+            rich={rich}
+            scan={scan}
+            cvesPending={cvesPending}
+            bundleSize={bundleSize}
+            bundleSizeLoading={bundleSizeLoading}
+          />
         </div>
       )}
     </>
