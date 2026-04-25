@@ -77,15 +77,17 @@ export default function Nav() {
       }}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
-        <span className="text-sm font-bold tracking-widest shrink-0" style={{ color: 'var(--fg)' }}>
-          SLOPCHECK.
-        </span>
+        {/* Brand + live indicator grouped together */}
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-sm font-bold tracking-widest" style={{ color: 'var(--fg)' }}>
+            SLOPCHECK.
+          </span>
+          <NetworkMeter />
+        </div>
 
-        <NetworkMeter />
-
-        <div className="flex items-center gap-3">
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-8">
+        {/* Desktop links + mobile hamburger */}
+        <div className="flex items-center">
+          <div className="hidden md:flex items-center gap-6">
             {links.map(l => (
               <a key={l.href} href={l.href} className="text-xs tracking-wider transition-colors"
                 style={{ color: 'var(--muted)' }}
@@ -94,7 +96,7 @@ export default function Nav() {
                 {l.label}
               </a>
             ))}
-            <span style={{ color: 'var(--border)' }}>|</span>
+            <span style={{ color: 'var(--border)', padding: '0 2px' }}>|</span>
             {toolLinks.map(l => (
               <a key={l.href} href={l.href} className="text-xs tracking-wider transition-colors"
                 style={{ color: 'var(--muted)' }}
@@ -104,7 +106,7 @@ export default function Nav() {
               </a>
             ))}
             <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
-              className="text-xs tracking-wider transition-colors" style={{ color: 'var(--muted)' }}
+              className="text-xs tracking-wider transition-colors ml-2" style={{ color: 'var(--muted)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
               GITHUB →
