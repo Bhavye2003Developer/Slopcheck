@@ -9,6 +9,12 @@ const links = [
   { label: '[04] FAQ', href: '#faq' },
 ];
 
+const toolLinks = [
+  { label: 'PKG', href: '/pkg' },
+  { label: 'GH SCAN', href: '/github' },
+  { label: 'DIFF', href: '/diff' },
+];
+
 interface NetInfo { online: boolean }
 
 function NetworkMeter() {
@@ -88,6 +94,15 @@ export default function Nav() {
                 {l.label}
               </a>
             ))}
+            <span style={{ color: 'var(--border)' }}>|</span>
+            {toolLinks.map(l => (
+              <a key={l.href} href={l.href} className="text-xs tracking-wider transition-colors"
+                style={{ color: 'var(--muted)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+                {l.label}
+              </a>
+            ))}
             <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
               className="text-xs tracking-wider transition-colors" style={{ color: 'var(--muted)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
@@ -117,6 +132,15 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
+          <div className="border-t pt-3" style={{ borderColor: 'var(--border)' }}>
+            <p className="text-xs tracking-widest mb-3" style={{ color: 'var(--dim-lo)' }}>TOOLS</p>
+            {toolLinks.map(l => (
+              <a key={l.href} href={l.href} className="block text-xs tracking-wider mb-3" style={{ color: 'var(--muted)' }}
+                onClick={() => setMenuOpen(false)}>
+                {l.label}
+              </a>
+            ))}
+          </div>
           <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
             className="text-xs tracking-wider" style={{ color: 'var(--muted)' }}
             onClick={() => setMenuOpen(false)}>

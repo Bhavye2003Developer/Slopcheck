@@ -6,9 +6,7 @@ import ScanInput from './scanner/ScanInput';
 import ScanProgress from './scanner/ScanProgress';
 import ResultsTable from './scanner/ResultsTable';
 import NetworkTrail from './scanner/NetworkTrail';
-import DiffScanner from './scanner/DiffScanner';
 import ThreatDial from './scanner/ThreatDial';
-import PackageLookup from './scanner/PackageLookup';
 import { detectAndParse } from '@/lib/parsers';
 import { runScan } from '@/lib/scanner';
 import type { ScanResult, NetworkEvent, Severity } from '@/lib/types';
@@ -17,7 +15,6 @@ import type { EcosystemHint } from '@/lib/parsers';
 const SEVERITY_ORDER: Record<Severity, number> = { critical: 0, high: 1, medium: 2, clean: 3, unsupported: 4 };
 
 export default function ScannerSection() {
-  const [mode, setMode] = useState<'scan' | 'diff' | 'pkg'>('scan');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [results, setResults] = useState<ScanResult[]>([]);
@@ -108,76 +105,52 @@ export default function ScannerSection() {
         <p className="text-xs tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
           SCAN YOUR MANIFEST
         </p>
-        <div className="flex items-end justify-between mb-8 md:mb-10 flex-wrap gap-4">
-          <h2 className="text-2xl md:text-4xl font-bold tracking-tight">
-            PASTE. SCAN.<br />FIND OUT.
-          </h2>
-          {/* Mode toggle */}
-          <div className="flex text-xs tracking-widest" style={{ border: '1px solid var(--border)' }}>
-            {([['scan', 'SCAN'], ['diff', 'DIFF'], ['pkg', 'PKG']] as const).map(([m, label]) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className="px-4 py-2 transition-colors"
-                style={{
-                  background: mode === m ? 'var(--fg)' : 'transparent',
-                  color: mode === m ? 'var(--bg)' : 'var(--muted)',
-                  fontFamily: 'var(--font-mono)',
-                }}
+        <h2 className="text-2xl md:text-4xl font-bold tracking-tight mb-8 md:mb-10">
+          PASTE. SCAN.<br />FIND OUT.
+        </h2>
+
+        <ScanInput onScan={handleScan} loading={loading} />
+
+        {scanning && progress && (
+          <ScanProgress done={progress.done} total={progress.total} />
+        )}
+
+        {error && (
+          <p className="mt-4 text-xs tracking-widest" style={{ color: 'var(--critical)' }}>
+            {error}
+          </p>
+        )}
+
+        {!scanning && results.length > 0 && (
+          <ThreatDial results={results} />
+        )}
+
+        {results.length > 0 && (
+          <>
+            {isSharedView && !sharedDismissed && (
+              <div
+                className="flex items-center justify-between mt-6 px-4 py-2 text-xs tracking-widest"
+                style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}
               >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {mode === 'diff' ? <DiffScanner /> : <>
-          {mode === 'scan'
-            ? <ScanInput onScan={handleScan} loading={loading} />
-            : <PackageLookup onScan={handleScan} loading={loading} />
-          }
-
-          {scanning && progress && (
-            <ScanProgress done={progress.done} total={progress.total} />
-          )}
-
-          {error && (
-            <p className="mt-4 text-xs tracking-widest" style={{ color: 'var(--critical)' }}>
-              {error}
-            </p>
-          )}
-
-          {!scanning && results.length > 0 && (
-            <ThreatDial results={results} />
-          )}
-
-          {results.length > 0 && (
-            <>
-              {isSharedView && !sharedDismissed && (
-                <div
-                  className="flex items-center justify-between mt-6 px-4 py-2 text-xs tracking-widest"
-                  style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}
+                <span>
+                  SHARED REPORT
+                  <span style={{ color: 'var(--dim-mid)', marginLeft: 8 }}>· results loaded from link</span>
+                </span>
+                <button
+                  onClick={() => setSharedDismissed(true)}
+                  style={{ background: 'none', border: 'none', color: 'var(--dim-lo)', cursor: 'pointer', fontSize: 11, letterSpacing: '0.05em' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--dim-lo)')}
                 >
-                  <span>
-                    SHARED REPORT
-                    <span style={{ color: 'var(--dim-mid)', marginLeft: 8 }}>· results loaded from link</span>
-                  </span>
-                  <button
-                    onClick={() => setSharedDismissed(true)}
-                    style={{ background: 'none', border: 'none', color: 'var(--dim-lo)', cursor: 'pointer', fontSize: 11, letterSpacing: '0.05em' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--dim-lo)')}
-                  >
-                    DISMISS ×
-                  </button>
-                </div>
-              )}
-              <ResultsTable results={results} scanning={scanning} scanMs={scanMs ?? undefined} />
-            </>
-          )}
+                  DISMISS ×
+                </button>
+              </div>
+            )}
+            <ResultsTable results={results} scanning={scanning} scanMs={scanMs ?? undefined} />
+          </>
+        )}
 
-          <NetworkTrail events={networkEvents} />
-        </>}
+        <NetworkTrail events={networkEvents} />
       </div>
     </section>
   );

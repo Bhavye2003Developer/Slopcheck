@@ -382,17 +382,6 @@ function buildSarif(results: ScanResult[]): string {
   }, null, 2);
 }
 
-function buildBadgeUrl(critical: number, high: number, medium: number, clean: number): string {
-  const color = critical > 0 ? 'red' : high > 0 ? 'orange' : medium > 0 ? 'yellow' : 'brightgreen';
-  const parts: string[] = [];
-  if (critical > 0) parts.push(`${critical}_critical`);
-  if (high > 0) parts.push(`${high}_high`);
-  if (medium > 0) parts.push(`${medium}_med`);
-  if (parts.length === 0) parts.push('all_clear');
-  const msg = parts.join('_·_');
-  return `https://img.shields.io/badge/slop__check-${msg}-${color}?style=flat-square`;
-}
-
 function buildGhYaml(): string {
   return `name: Slop Check
 
@@ -454,7 +443,6 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
   const [shareCopied, setShareCopied] = useState(false);
   const [copiedPkg, setCopiedPkg] = useState<string | null>(null);
   const [ciOpen, setCiOpen] = useState(false);
-  const [badgeCopied, setBadgeCopied] = useState(false);
   const [yamlCopied, setYamlCopied] = useState(false);
   const [sarifCopied, setSarifCopied] = useState(false);
   const [pdfOpened, setPdfOpened] = useState(false);
@@ -731,33 +719,12 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
 
       {/* CI Setup panel */}
       {!scanning && ciOpen && (() => {
-        const { critical, high, medium, clean: cleanCount } = buildSummary(results);
-        const badgeUrl = buildBadgeUrl(critical, high, medium, cleanCount);
-        const badgeMd = `[![Slop Check](${badgeUrl})](https://slopcheck.com)`;
         const yaml = buildGhYaml();
         function copySnippet(text: string, setCopied: (v: boolean) => void) {
           navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
         }
         return (
           <div className="mt-3 text-xs" style={{ border: '1px solid var(--border)', background: 'var(--bg)' }}>
-            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
-              <p className="tracking-widest mb-2" style={{ color: 'var(--muted)' }}>README BADGE</p>
-              <div className="flex items-center gap-3">
-                <code className="flex-1 truncate text-xs" style={{ color: 'var(--fg)', opacity: 0.7 }}>{badgeMd}</code>
-                <button
-                  onClick={() => copySnippet(badgeMd, setBadgeCopied)}
-                  className="shrink-0 px-3 py-1 text-xs tracking-widest transition-colors"
-                  style={{ border: '1px solid var(--border)', color: badgeCopied ? 'var(--clean)' : 'var(--muted)' }}
-                >
-                  {badgeCopied ? 'COPIED!' : 'COPY'}
-                </button>
-              </div>
-              <div className="mt-2">
-                {/* Badge preview */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={badgeUrl} alt="Slop Check badge preview" style={{ height: 20 }} />
-              </div>
-            </div>
             <div className="px-4 py-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="tracking-widest" style={{ color: 'var(--muted)' }}>GITHUB ACTIONS</p>
