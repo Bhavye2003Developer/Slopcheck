@@ -39,6 +39,17 @@ interface BundleSize {
   deps: number;
 }
 
+interface ScorecardCheck {
+  name: string;
+  score: number;
+  reason: string;
+}
+
+interface Scorecard {
+  score: number;
+  checks: ScorecardCheck[];
+}
+
 function parsePkgInput(input: string): { name: string; version: string | null } {
   const t = input.trim();
   if (t.startsWith('@')) {
@@ -211,6 +222,19 @@ async function fetchBundleSize(name: string): Promise<BundleSize | null> {
   } catch { return null; }
 }
 
+async function fetchScorecard(repoUrl: string): Promise<Scorecard | null> {
+  try {
+    const match = repoUrl.match(/github\.com\/([^/]+\/[^/.\s]+)/);
+    if (!match) return null;
+    const repo = match[1].replace(/\.git$/, '');
+    const r = await fetch(`https://api.securityscorecards.dev/projects/github.com/${repo}`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (typeof d.score !== 'number') return null;
+    return { score: d.score, checks: Array.isArray(d.checks) ? d.checks : [] };
+  } catch { return null; }
+}
+
 function fmtDownloads(n?: number): string {
   if (n === undefined) return '—';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M/mo`;
@@ -322,15 +346,22 @@ function ExtLink({ href, label }: { href: string; label: string }) {
   );
 }
 
+const SCORECARD_CHECKS = [
+  'Maintained', 'Code-Review', 'Branch-Protection', 'Vulnerabilities',
+  'Security-Policy', 'Token-Permissions', 'Dangerous-Workflow', 'SAST', 'Fuzzing',
+];
+
 /* PkgCard renders without an outer border — the modal container owns the border */
 function PkgCard({
-  rich, scan, cvesPending, bundleSize, bundleSizeLoading,
+  rich, scan, cvesPending, bundleSize, bundleSizeLoading, scorecard, scorecardLoading,
 }: {
   rich: RichMeta;
   scan: ScanResult;
   cvesPending: boolean;
   bundleSize: BundleSize | null;
   bundleSizeLoading: boolean;
+  scorecard: Scorecard | null;
+  scorecardLoading: boolean;
 }) {
   const [cmdCopied, setCmdCopied] = useState(false);
 
@@ -545,6 +576,52 @@ function PkgCard({
         )}
       </div>
 
+      {/* OpenSSF Scorecard */}
+      {(scorecardLoading || scorecard) && (
+        <div className="px-4 sm:px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs tracking-widest" style={{ color: 'var(--muted)' }}>OPENSSF SCORECARD</p>
+            {scorecard && (
+              <span
+                className="text-sm font-bold"
+                style={{
+                  color: scorecard.score >= 7 ? 'var(--clean)' : scorecard.score >= 5 ? 'var(--warning)' : 'var(--critical)',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                {scorecard.score.toFixed(1)}<span style={{ color: 'var(--muted)', fontWeight: 'normal' }}> / 10</span>
+              </span>
+            )}
+          </div>
+          {scorecardLoading && !scorecard && (
+            <p className="text-xs tracking-widest" style={{ color: 'var(--dim-lo)' }}>FETCHING...</p>
+          )}
+          {scorecard && (() => {
+            const displayed = scorecard.checks
+              .filter(c => SCORECARD_CHECKS.includes(c.name) && c.score !== -1)
+              .sort((a, b) => a.score - b.score);
+            if (displayed.length === 0) return null;
+            return (
+              <div className="flex flex-col gap-1.5">
+                {displayed.map(check => {
+                  const color = check.score >= 8 ? 'var(--clean)' : check.score >= 5 ? 'var(--warning)' : 'var(--critical)';
+                  return (
+                    <div key={check.name} className="flex items-center justify-between gap-3 text-xs">
+                      <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                        {check.name.replace(/-/g, ' ').toUpperCase()}
+                      </span>
+                      <span className="font-bold shrink-0" style={{ color, fontFamily: 'var(--font-mono)' }}>
+                        {check.score}/10
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {/* External links */}
       <div className="px-4 sm:px-5 py-4 flex flex-wrap gap-4 sm:gap-5">
         <ExtLink href={rich.registryUrl} label="REGISTRY" />
@@ -566,6 +643,8 @@ export default function PkgInspector() {
   const [notFound, setNotFound] = useState(false);
   const [bundleSize, setBundleSize] = useState<BundleSize | null>(null);
   const [bundleSizeLoading, setBundleSizeLoading] = useState(false);
+  const [scorecard, setScorecard] = useState<Scorecard | null>(null);
+  const [scorecardLoading, setScorecardLoading] = useState(false);
 
   const ecoMeta = ECOSYSTEMS.find(e => e.value === eco)!;
 
@@ -580,6 +659,8 @@ export default function PkgInspector() {
     setNotFound(false);
     setBundleSize(null);
     setBundleSizeLoading(eco === 'npm');
+    setScorecard(null);
+    setScorecardLoading(false);
     setLoading(true);
 
     const { name, version } = parsePkgInput(t);
@@ -593,7 +674,16 @@ export default function PkgInspector() {
     }
 
     try {
-      const richPromise = fetchRichMeta(name, eco).then(r => { setRich(r); return r; });
+      const richPromise = fetchRichMeta(name, eco).then(r => {
+        setRich(r);
+        if (r?.repository && r.repository.includes('github.com')) {
+          setScorecardLoading(true);
+          fetchScorecard(r.repository)
+            .then(sc => { setScorecard(sc); setScorecardLoading(false); })
+            .catch(() => setScorecardLoading(false));
+        }
+        return r;
+      });
 
       if (eco === 'npm') {
         fetchBundleSize(name)
@@ -717,6 +807,8 @@ export default function PkgInspector() {
             cvesPending={cvesPending}
             bundleSize={bundleSize}
             bundleSizeLoading={bundleSizeLoading}
+            scorecard={scorecard}
+            scorecardLoading={scorecardLoading}
           />
         </div>
       )}

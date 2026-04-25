@@ -382,6 +382,85 @@ function buildSarif(results: ScanResult[]): string {
   }, null, 2);
 }
 
+function buildCycloneDx(results: ScanResult[]): string {
+  const ECO_PURL: Record<string, string> = {
+    npm: 'npm', pypi: 'pypi', cargo: 'cargo', rubygems: 'gem', go: 'golang',
+  };
+
+  function toPurl(r: ScanResult): string {
+    const type = ECO_PURL[r.package.ecosystem] ?? r.package.ecosystem;
+    let name = r.package.name;
+    if (r.package.ecosystem === 'npm' && name.startsWith('@')) {
+      name = '%40' + name.slice(1).replace('/', '%2F');
+    }
+    const ver = r.package.version ? `@${r.package.version}` : '';
+    return `pkg:${type}/${name}${ver}`;
+  }
+
+  function bomRef(r: ScanResult): string {
+    return `${r.package.ecosystem}:${r.package.name}`;
+  }
+
+  const components = results.map(r => ({
+    type: 'library',
+    'bom-ref': bomRef(r),
+    name: r.package.name,
+    ...(r.package.version ? { version: r.package.version } : {}),
+    purl: toPurl(r),
+    properties: [
+      { name: 'slopcheck:severity', value: r.severity },
+      { name: 'slopcheck:flag', value: r.flag },
+      { name: 'slopcheck:reason', value: r.reason },
+      ...(r.meta.monthlyDownloads !== undefined
+        ? [{ name: 'slopcheck:monthly_downloads', value: String(r.meta.monthlyDownloads) }]
+        : []),
+      ...(r.meta.createdAt ? [{ name: 'slopcheck:created_at', value: r.meta.createdAt }] : []),
+      ...(r.meta.updatedAt ? [{ name: 'slopcheck:updated_at', value: r.meta.updatedAt }] : []),
+    ],
+  }));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vulnerabilities: any[] = [];
+  for (const r of results) {
+    if (!r.cves?.length) continue;
+    const ref = bomRef(r);
+    for (const cve of r.cves) {
+      const isNvd = /^CVE-/i.test(cve.id);
+      vulnerabilities.push({
+        'bom-ref': `vuln:${cve.id}`,
+        id: cve.id,
+        source: isNvd
+          ? { name: 'NVD', url: `https://nvd.nist.gov/vuln/detail/${cve.id}` }
+          : { name: 'OSV', url: `https://osv.dev/vulnerability/${cve.id}` },
+        ratings: [{
+          severity: cve.severity.toLowerCase(),
+          ...(cve.cvss !== null ? { score: cve.cvss, method: 'CVSSv3' } : {}),
+        }],
+        ...(cve.summary ? { description: cve.summary } : {}),
+        ...(cve.fixedIn ? { recommendation: `Upgrade to ${cve.fixedIn}` } : {}),
+        affects: [{ ref }],
+      });
+    }
+  }
+
+  const id = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+  return JSON.stringify({
+    bomFormat: 'CycloneDX',
+    specVersion: '1.4',
+    serialNumber: `urn:uuid:${id}`,
+    version: 1,
+    metadata: {
+      timestamp: new Date().toISOString(),
+      tools: [{ vendor: 'SlopCheck', name: 'SlopCheck', version: '1.0.0' }],
+    },
+    components,
+    ...(vulnerabilities.length > 0 ? { vulnerabilities } : {}),
+  }, null, 2);
+}
+
 function buildGhYaml(): string {
   return `name: Slop Check
 
@@ -446,6 +525,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
   const [yamlCopied, setYamlCopied] = useState(false);
   const [sarifCopied, setSarifCopied] = useState(false);
   const [pdfOpened, setPdfOpened] = useState(false);
+  const [sbomExported, setSbomExported] = useState(false);
 
   function copyPkg(name: string, version: string | null) {
     const text = version ? `${name}@${version}` : name;
@@ -589,6 +669,12 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
     setTimeout(() => setSarifCopied(false), 2000);
   }
 
+  function exportSbom() {
+    downloadFile(buildCycloneDx(results), 'slopcheck-sbom.cdx.json', 'application/json');
+    setSbomExported(true);
+    setTimeout(() => setSbomExported(false), 2000);
+  }
+
   function exportText() {
     const lines = results.map(r => {
       const ver = r.package.version ? `@${r.package.version}` : '';
@@ -686,6 +772,16 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
               title="Export SARIF — upload to GitHub code scanning"
             >
               {sarifCopied ? 'SAVED!' : 'SARIF'}
+            </button>
+            <button
+              onClick={exportSbom}
+              className="text-xs tracking-widest px-3 py-2 transition-colors"
+              style={{ border: `1px solid ${sbomExported ? 'var(--clean)' : 'var(--border)'}`, color: sbomExported ? 'var(--clean)' : 'var(--fg)' }}
+              onMouseEnter={e => { if (!sbomExported) e.currentTarget.style.borderColor = 'var(--fg)'; }}
+              onMouseLeave={e => { if (!sbomExported) e.currentTarget.style.borderColor = sbomExported ? 'var(--clean)' : 'var(--border)'; }}
+              title="Export CycloneDX 1.4 SBOM — Software Bill of Materials"
+            >
+              {sbomExported ? 'SAVED!' : 'SBOM'}
             </button>
             <button
               onClick={exportPdf}
