@@ -218,7 +218,7 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
 <meta charset="utf-8">
 <title>HookCheck - Security Audit Report</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { font-family: 'Courier New', Courier, monospace; background: #0a0a0a; color: #ededed; font-size: 10pt; line-height: 1.5; }
 .page { padding: 2.5cm 2.5cm 2cm; max-width: 1100px; margin: 0 auto; }
 .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #ededed; padding-bottom: 14px; margin-bottom: 22px; }
