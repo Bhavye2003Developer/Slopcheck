@@ -41,7 +41,7 @@ export default function ChecksGrid() {
     <section id="checks" className="py-16 md:py-24 px-4 md:px-6" style={{ borderTop: '1px solid var(--border)' }}>
       <div className="max-w-7xl mx-auto">
         <p className="text-xs tracking-widest mb-4" style={{ color: 'var(--muted)' }}>[02] WHAT WE CHECK</p>
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-16" style={{ wordSpacing: '-0.15em' }}>
           FIVE FLAGS.<br />ZERO ACCOUNTS.
         </h2>
 

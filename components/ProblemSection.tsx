@@ -7,7 +7,7 @@ export default function ProblemSection() {
         <div className="grid md:grid-cols-2 gap-12 md:gap-16 mb-12 md:mb-16">
           <div>
             <p className="text-xs tracking-widest mb-4" style={{ color: 'var(--muted)' }}>[01] PROBLEM</p>
-            <h2 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight" style={{ wordSpacing: '-0.15em' }}>
               THE SLOPSQUATTING<br />THREAT
             </h2>
           </div>

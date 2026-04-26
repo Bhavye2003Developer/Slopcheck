@@ -105,7 +105,7 @@ export default function ScannerSection() {
         <p className="text-xs tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
           SCAN YOUR MANIFEST
         </p>
-        <h2 className="text-2xl md:text-4xl font-bold tracking-tight mb-8 md:mb-10">
+        <h2 className="text-2xl md:text-4xl font-bold tracking-tight mb-8 md:mb-10" style={{ wordSpacing: '-0.15em' }}>
           PASTE. SCAN.<br />FIND OUT.
         </h2>
 

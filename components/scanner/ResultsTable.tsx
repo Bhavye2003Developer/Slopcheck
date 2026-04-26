@@ -849,7 +849,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
           className="my-6 px-6 py-8 text-center"
           style={{ border: '1px solid var(--clean)' }}
         >
-          <p className="text-4xl md:text-5xl font-black tracking-widest mb-3" style={{ color: 'var(--clean)' }}>
+          <p className="text-4xl md:text-5xl font-black tracking-widest mb-3" style={{ color: 'var(--clean)', wordSpacing: '-0.2em' }}>
             ALL CLEAR
           </p>
           <p className="text-xs tracking-widest" style={{ color: 'var(--dim-lo)' }}>
