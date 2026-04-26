@@ -176,11 +176,11 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
   const flagged  = results.filter(r => r.severity !== 'clean' && r.severity !== 'unsupported').length;
   const totalCves = results.reduce((s, r) => s + (r.cves?.length ?? 0), 0);
 
-  const scoreColor = score >= 75 ? '#cc1111' : score >= 50 ? '#cc5500' : score >= 25 ? '#997700' : score > 0 ? '#997700' : '#007a2f';
+  const scoreColor = score >= 75 ? '#ff4444' : score >= 50 ? '#ff7700' : score >= 25 ? '#ffaa00' : score > 0 ? '#ffaa00' : '#22ff88';
   const scoreLabel = score >= 75 ? 'CRITICAL' : score >= 50 ? 'HIGH RISK' : score >= 25 ? 'CAUTION' : score > 0 ? 'LOW RISK' : 'ALL CLEAR';
 
   const sevColor: Record<string, string> = {
-    critical: '#cc1111', high: '#cc5500', medium: '#997700', clean: '#007a2f', unsupported: '#888',
+    critical: '#ff4444', high: '#ff7700', medium: '#ffaa00', clean: '#22ff88', unsupported: '#555',
   };
 
   const rows = results.map((r, i) => {
@@ -191,24 +191,24 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
     const sc = sevColor[r.severity] ?? '#888';
     const cveText = r.cves?.length ? r.cves.map(c => `${c.id} (${c.severity}${c.cvss ? ' ' + c.cvss.toFixed(1) : ''})`).join(', ') : '';
     return `<tr>
-      <td style="color:#888;text-align:right">${i + 1}</td>
-      <td style="font-weight:bold">${r.package.name}<span style="color:#888;font-weight:normal">${ver !== '-' ? '@' + ver + latest : ''}</span></td>
+      <td style="color:#555;text-align:right">${i + 1}</td>
+      <td style="font-weight:bold">${r.package.name}<span style="color:#555;font-weight:normal">${ver !== '-' ? '@' + ver + latest : ''}</span></td>
       <td style="color:${sc}">${r.severity.toUpperCase()}</td>
-      <td style="color:#555">${flag}</td>
+      <td style="color:#888">${flag}</td>
       <td>${r.reason}</td>
-      <td style="color:#888">${dl}</td>
-      ${cveText ? `<td style="color:#cc5500;font-size:8pt">${cveText}</td>` : '<td style="color:#ccc">-</td>'}
+      <td style="color:#555">${dl}</td>
+      ${cveText ? `<td style="color:#ff7700;font-size:8pt">${cveText}</td>` : '<td style="color:#333">-</td>'}
     </tr>`;
   }).join('');
 
   const cveRows = results.filter(r => r.cves?.length).flatMap(r =>
     (r.cves ?? []).map(cve => `<tr>
       <td style="font-weight:bold">${r.package.name}${r.package.version ? '@' + r.package.version : ''}</td>
-      <td style="font-weight:bold;color:${cve.severity === 'CRITICAL' ? '#cc1111' : cve.severity === 'HIGH' ? '#cc5500' : '#997700'}">${cve.id}</td>
-      <td style="color:${cve.severity === 'CRITICAL' ? '#cc1111' : cve.severity === 'HIGH' ? '#cc5500' : '#997700'}">${cve.severity}</td>
+      <td style="font-weight:bold;color:${cve.severity === 'CRITICAL' ? '#ff4444' : cve.severity === 'HIGH' ? '#ff7700' : '#ffaa00'}">${cve.id}</td>
+      <td style="color:${cve.severity === 'CRITICAL' ? '#ff4444' : cve.severity === 'HIGH' ? '#ff7700' : '#ffaa00'}">${cve.severity}</td>
       <td>${cve.cvss !== null ? cve.cvss.toFixed(1) : '-'}</td>
       <td>${cve.summary ?? '-'}</td>
-      <td style="color:#007a2f">${cve.fixedIn ?? '-'}</td>
+      <td style="color:#22ff88">${cve.fixedIn ?? '-'}</td>
     </tr>`)
   ).join('');
 
@@ -219,26 +219,26 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
 <title>HookCheck - Security Audit Report</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Courier New', Courier, monospace; background: #fff; color: #111; font-size: 10pt; line-height: 1.5; }
+body { font-family: 'Courier New', Courier, monospace; background: #0a0a0a; color: #ededed; font-size: 10pt; line-height: 1.5; }
 .page { padding: 2.5cm 2.5cm 2cm; max-width: 1100px; margin: 0 auto; }
-.header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 14px; margin-bottom: 22px; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #ededed; padding-bottom: 14px; margin-bottom: 22px; }
 .brand { font-size: 22pt; font-weight: bold; letter-spacing: 0.08em; }
-.subtitle { font-size: 7.5pt; letter-spacing: 0.25em; color: #666; margin-top: 3px; }
-.meta { font-size: 9pt; color: #666; text-align: right; }
-.score-block { display: flex; align-items: center; gap: 40px; padding: 20px 24px; border: 1px solid #ddd; margin-bottom: 24px; }
+.subtitle { font-size: 7.5pt; letter-spacing: 0.25em; color: #999; margin-top: 3px; }
+.meta { font-size: 9pt; color: #999; text-align: right; }
+.score-block { display: flex; align-items: center; gap: 40px; padding: 20px 24px; border: 1px solid #222; margin-bottom: 24px; }
 .score-num { font-size: 52pt; font-weight: bold; line-height: 1; color: ${scoreColor}; }
 .score-label { font-size: 9pt; letter-spacing: 0.3em; color: ${scoreColor}; margin-top: 4px; }
 .stats { display: flex; gap: 28px; }
 .stat { text-align: center; }
 .stat-val { font-size: 22pt; font-weight: bold; line-height: 1; }
-.stat-key { font-size: 7.5pt; letter-spacing: 0.2em; color: #888; margin-top: 3px; }
-.section-title { font-size: 7.5pt; letter-spacing: 0.25em; color: #999; border-bottom: 1px solid #e0e0e0; padding-bottom: 7px; margin: 26px 0 12px; text-transform: uppercase; }
+.stat-key { font-size: 7.5pt; letter-spacing: 0.2em; color: #666; margin-top: 3px; }
+.section-title { font-size: 7.5pt; letter-spacing: 0.25em; color: #666; border-bottom: 1px solid #222; padding-bottom: 7px; margin: 26px 0 12px; text-transform: uppercase; }
 table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-th { text-align: left; letter-spacing: 0.1em; font-size: 7.5pt; color: #999; border-bottom: 1px solid #111; padding: 6px 8px; white-space: nowrap; }
-td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+th { text-align: left; letter-spacing: 0.1em; font-size: 7.5pt; color: #666; border-bottom: 1px solid #ededed; padding: 6px 8px; white-space: nowrap; }
+td { padding: 5px 8px; border-bottom: 1px solid #1a1a1a; vertical-align: top; }
 tr:last-child td { border-bottom: none; }
-.footer { margin-top: 36px; border-top: 1px solid #e0e0e0; padding-top: 12px; font-size: 7.5pt; color: #bbb; text-align: center; letter-spacing: 0.1em; }
-.print-btn { position: fixed; top: 16px; right: 16px; font-family: 'Courier New', monospace; font-size: 10pt; letter-spacing: 0.1em; padding: 8px 18px; background: #111; color: #fff; border: none; cursor: pointer; }
+.footer { margin-top: 36px; border-top: 1px solid #222; padding-top: 12px; font-size: 7.5pt; color: #555; text-align: center; letter-spacing: 0.1em; }
+.print-btn { position: fixed; top: 16px; right: 16px; font-family: 'Courier New', monospace; font-size: 10pt; letter-spacing: 0.1em; padding: 8px 18px; background: #ededed; color: #0a0a0a; border: none; cursor: pointer; }
 @media print {
   @page { margin: 1.5cm; }
   .page { padding: 0; }
