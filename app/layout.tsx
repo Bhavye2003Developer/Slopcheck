@@ -27,6 +27,13 @@ export const metadata: Metadata = {
     description:
       'Paste any dependency manifest. Hook Check audits every package for suspicious install scripts, typosquats, malicious hooks, and known CVEs - entirely in your browser.',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', type: 'image/png', sizes: '96x96' },
+    ],
+    apple: '/apple-icon.png',
+  },
   verification: {
     google: '-OdPoSk_I5iBT_FYTWcE3w1tL1E-FubgUHX6mELy5to',
   },
