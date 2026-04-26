@@ -526,6 +526,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
   const [sarifCopied, setSarifCopied] = useState(false);
   const [pdfOpened, setPdfOpened] = useState(false);
   const [sbomExported, setSbomExported] = useState(false);
+  const [mdCopied, setMdCopied] = useState(false);
 
   function copyPkg(name: string, version: string | null) {
     const text = version ? `${name}@${version}` : name;
@@ -687,6 +688,31 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
     downloadFile(lines.join('\n') + summary, 'hookcheck-results.txt', 'text/plain');
   }
 
+  function copyMarkdown() {
+    const rows = results.map(r => {
+      const pkg = r.package.version ? `\`${r.package.name}@${r.package.version}\`` : `\`${r.package.name}\``;
+      const sev = SEVERITY_LABEL[r.severity];
+      const cves = r.cves?.length ? ` · ${r.cves.length} CVE${r.cves.length > 1 ? 's' : ''}` : '';
+      return `| ${pkg} | ${r.package.ecosystem} | ${sev} | ${r.reason}${cves} |`;
+    });
+    const summary = `**${critical} critical · ${high} high · ${medium} medium · ${clean} clean · ${results.length} packages**`;
+    const md = [
+      '## Hook Check Scan Results',
+      '',
+      '| Package | Ecosystem | Severity | Details |',
+      '|---|---|---|---|',
+      ...rows,
+      '',
+      summary,
+      '',
+      '_Scanned by [Hook Check](https://hookcheck.dev)_',
+    ].join('\n');
+    navigator.clipboard?.writeText(md).then(() => {
+      setMdCopied(true);
+      setTimeout(() => setMdCopied(false), 2000);
+    });
+  }
+
   function shareReport() {
     const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(results));
     const url = `${window.location.origin}${window.location.pathname}#share=${compressed}`;
@@ -745,6 +771,16 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
         </p>
         {!scanning && (
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={copyMarkdown}
+              className="text-xs tracking-widest px-3 py-2 transition-colors"
+              style={{ border: `1px solid ${mdCopied ? 'var(--clean)' : 'var(--border)'}`, color: mdCopied ? 'var(--clean)' : 'var(--fg)' }}
+              onMouseEnter={e => { if (!mdCopied) e.currentTarget.style.borderColor = 'var(--fg)'; }}
+              onMouseLeave={e => { if (!mdCopied) e.currentTarget.style.borderColor = mdCopied ? 'var(--clean)' : 'var(--border)'; }}
+              title="Copy results as Markdown table — paste into GitHub PRs, issues, or Slack"
+            >
+              {mdCopied ? 'COPIED!' : 'MD'}
+            </button>
             <button
               onClick={exportJson}
               className="text-xs tracking-widest px-3 py-2 transition-colors"

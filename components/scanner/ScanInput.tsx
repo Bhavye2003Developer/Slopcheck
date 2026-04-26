@@ -37,6 +37,13 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
     onScan(text, ecosystem, includeDevDeps);
   }
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleScan();
+    }
+  }
+
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const val = e.target.value;
     setContent(val);
@@ -122,6 +129,7 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
         value={content}
         onChange={handleChange}
         onPaste={() => { pasteFlag.current = true; }}
+        onKeyDown={handleKeyDown}
         placeholder={'Paste or drop a file here...\n\ne.g. package.json, requirements.txt, go.mod'}
         rows={10}
         className="w-full bg-transparent outline-none resize-none px-4 py-4 text-xs leading-relaxed"
@@ -134,14 +142,19 @@ export default function ScanInput({ onScan, loading }: ScanInputProps) {
           <input type="checkbox" checked={includeDevDeps} onChange={e => setIncludeDevDeps(e.target.checked)} className="accent-current" />
           INCLUDE DEV DEPENDENCIES
         </label>
-        <button
-          onClick={() => handleScan()}
-          disabled={!content.trim() || loading}
-          className="px-6 py-2 text-xs font-bold tracking-widest transition-opacity disabled:opacity-30 shrink-0"
-          style={{ background: 'var(--fg)', color: 'var(--bg)' }}
-        >
-          {loading ? 'SCANNING...' : 'SCAN →'}
-        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          {!loading && content.trim() && (
+            <span className="hidden sm:block text-xs" style={{ color: 'var(--dim-lo)' }}>⌃↵</span>
+          )}
+          <button
+            onClick={() => handleScan()}
+            disabled={!content.trim() || loading}
+            className="px-6 py-2 text-xs font-bold tracking-widest transition-opacity disabled:opacity-30"
+            style={{ background: 'var(--fg)', color: 'var(--bg)' }}
+          >
+            {loading ? 'SCANNING...' : 'SCAN →'}
+          </button>
+        </div>
       </div>
     </div>
   );
