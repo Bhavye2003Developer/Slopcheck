@@ -2,9 +2,11 @@
 
 **Scan dependency manifests for malicious, suspicious, and vulnerable packages. All checks run entirely in your browser.**
 
-Hook Check was built to address a real and growing attack vector: AI coding assistants hallucinate package names, and threat actors register those names on public registries within hours, pre-loaded with malicious install scripts. Hook Check audits every package in your manifest before a single byte executes.
+Hook Check is built to address a real and growing attack vector: AI coding assistants hallucinate package names, and threat actors register those names on public registries within hours, pre-loaded with malicious install scripts. Hook Check audits every package in your manifest before a single byte executes.
 
 ---
+
+https://github.com/user-attachments/assets/9c02aa89-b506-494a-a4c1-20f899e2bd86
 
 ## What It Does
 
@@ -65,7 +67,7 @@ Non-blocking CVE pass via OSV.dev (parallel, after registry checks)
 Risk-ranked results table + 4-chart dashboard
 ```
 
-Every HTTP request is logged in the **Network Trail** - you can see exactly which registry was hit, the response status, timing, and whether the result came from cache.
+Every HTTP request is logged in the **Network Trail** - you can see exactly which registry is hit, the response status, timing, and whether the result came from cache.
 
 ---
 
@@ -135,10 +137,6 @@ npm run lint    # ESLint
 
 ## Built With
 
-This project was built with **[Claude Code](https://claude.ai/code)** by Anthropic, an agentic coding tool that writes, edits, and ships code through natural conversation.
+This project is built with **[Claude Code](https://claude.ai/code)** by Anthropic, an agentic coding tool that writes, edits, and ships code through natural conversation.
 
 ---
-
-## License
-
-MIT
