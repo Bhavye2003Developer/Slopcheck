@@ -187,17 +187,15 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
     const ver = r.package.version ?? '-';
     const latest = r.meta.latestVersion && r.meta.latestVersion !== r.package.version ? ` → ${r.meta.latestVersion}` : '';
     const dl = r.meta.monthlyDownloads !== undefined ? fmtDownloads(r.meta.monthlyDownloads) : '-';
-    const flag = FLAG_LABEL[r.flag] ?? SEVERITY_LABEL[r.severity];
     const sc = sevColor[r.severity] ?? '#888';
-    const cveText = r.cves?.length ? r.cves.map(c => `${c.id} (${c.severity}${c.cvss ? ' ' + c.cvss.toFixed(1) : ''})`).join(', ') : '';
+    const cveCount = r.cves?.length ? `${r.cves.length} CVE${r.cves.length > 1 ? 's' : ''}` : '-';
     return `<tr>
-      <td style="color:#555;text-align:right">${i + 1}</td>
-      <td style="font-weight:bold">${r.package.name}<span style="color:#555;font-weight:normal">${ver !== '-' ? '@' + ver + latest : ''}</span></td>
-      <td style="color:${sc}">${r.severity.toUpperCase()}</td>
-      <td style="color:#888">${flag}</td>
-      <td>${r.reason}</td>
-      <td style="color:#555">${dl}</td>
-      ${cveText ? `<td style="color:#ff7700;font-size:8pt">${cveText}</td>` : '<td style="color:#333">-</td>'}
+      <td style="color:#555;text-align:right;width:28px">${i + 1}</td>
+      <td style="font-weight:bold;word-break:break-all">${r.package.name}<br><span style="color:#555;font-weight:normal;font-size:7.5pt">${ver !== '-' ? ver + (latest ? ' → ' + r.meta.latestVersion : '') : ''}</span></td>
+      <td style="color:${sc};white-space:nowrap">${r.severity.toUpperCase()}</td>
+      <td style="word-break:break-word">${r.reason}</td>
+      <td style="color:#555;white-space:nowrap">${dl}</td>
+      <td style="color:${(r.cves?.length ?? 0) > 0 ? '#ff7700' : '#333'};white-space:nowrap">${cveCount}</td>
     </tr>`;
   }).join('');
 
@@ -233,9 +231,20 @@ body { font-family: 'Courier New', Courier, monospace; background: #0a0a0a; colo
 .stat-val { font-size: 22pt; font-weight: bold; line-height: 1; }
 .stat-key { font-size: 7.5pt; letter-spacing: 0.2em; color: #666; margin-top: 3px; }
 .section-title { font-size: 7.5pt; letter-spacing: 0.25em; color: #666; border-bottom: 1px solid #222; padding-bottom: 7px; margin: 26px 0 12px; text-transform: uppercase; }
-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-th { text-align: left; letter-spacing: 0.1em; font-size: 7.5pt; color: #666; border-bottom: 1px solid #ededed; padding: 6px 8px; white-space: nowrap; }
-td { padding: 5px 8px; border-bottom: 1px solid #1a1a1a; vertical-align: top; }
+table { width: 100%; border-collapse: collapse; font-size: 8pt; table-layout: fixed; }
+col.c-num { width: 28px; }
+col.c-pkg { width: 22%; }
+col.c-sev { width: 72px; }
+col.c-reason { width: auto; }
+col.c-dl { width: 80px; }
+col.c-cve { width: 60px; }
+col.c-id { width: 18%; }
+col.c-csev { width: 70px; }
+col.c-cvss { width: 44px; }
+col.c-sum { width: auto; }
+col.c-fix { width: 80px; }
+th { text-align: left; letter-spacing: 0.1em; font-size: 7pt; color: #666; border-bottom: 1px solid #ededed; padding: 5px 6px; white-space: nowrap; }
+td { padding: 5px 6px; border-bottom: 1px solid #1a1a1a; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
 tr:last-child td { border-bottom: none; }
 .footer { margin-top: 36px; border-top: 1px solid #222; padding-top: 12px; font-size: 7.5pt; color: #555; text-align: center; letter-spacing: 0.1em; }
 .print-btn { position: fixed; top: 16px; right: 16px; font-family: 'Courier New', monospace; font-size: 10pt; letter-spacing: 0.1em; padding: 8px 18px; background: #ededed; color: #0a0a0a; border: none; cursor: pointer; }
@@ -268,28 +277,26 @@ tr:last-child td { border-bottom: none; }
       <div class="score-label">${scoreLabel}</div>
     </div>
     <div class="stats">
-      <div class="stat"><div class="stat-val" style="color:#cc1111">${critical}</div><div class="stat-key">CRITICAL</div></div>
-      <div class="stat"><div class="stat-val" style="color:#cc5500">${high}</div><div class="stat-key">HIGH</div></div>
-      <div class="stat"><div class="stat-val" style="color:#997700">${medium}</div><div class="stat-key">MEDIUM</div></div>
-      <div class="stat"><div class="stat-val" style="color:#007a2f">${clean}</div><div class="stat-key">CLEAN</div></div>
-      ${totalCves > 0 ? `<div class="stat"><div class="stat-val" style="color:#cc5500">${totalCves}</div><div class="stat-key">CVEs</div></div>` : ''}
+      <div class="stat"><div class="stat-val" style="color:#ff4444">${critical}</div><div class="stat-key">CRITICAL</div></div>
+      <div class="stat"><div class="stat-val" style="color:#ff7700">${high}</div><div class="stat-key">HIGH</div></div>
+      <div class="stat"><div class="stat-val" style="color:#ffaa00">${medium}</div><div class="stat-key">MEDIUM</div></div>
+      <div class="stat"><div class="stat-val" style="color:#22ff88">${clean}</div><div class="stat-key">CLEAN</div></div>
+      ${totalCves > 0 ? `<div class="stat"><div class="stat-val" style="color:#ff7700">${totalCves}</div><div class="stat-key">CVEs</div></div>` : ''}
     </div>
   </div>
 
   <div class="section-title">PACKAGE AUDIT · ${flagged} flagged of ${results.length} scanned</div>
   <table>
-    <thead><tr>
-      <th>#</th><th>PACKAGE</th><th>SEVERITY</th><th>FLAG</th><th>REASON</th><th>DOWNLOADS</th><th>CVEs</th>
-    </tr></thead>
+    <colgroup><col class="c-num"><col class="c-pkg"><col class="c-sev"><col class="c-reason"><col class="c-dl"><col class="c-cve"></colgroup>
+    <thead><tr><th>#</th><th>PACKAGE</th><th>SEVERITY</th><th>REASON</th><th>DOWNLOADS</th><th>CVEs</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
 
   ${cveRows ? `
   <div class="section-title">CVE DETAILS · ${totalCves} vulnerabilities</div>
   <table>
-    <thead><tr>
-      <th>PACKAGE</th><th>CVE ID</th><th>SEVERITY</th><th>CVSS</th><th>SUMMARY</th><th>FIXED IN</th>
-    </tr></thead>
+    <colgroup><col class="c-pkg"><col class="c-id"><col class="c-csev"><col class="c-cvss"><col class="c-sum"><col class="c-fix"></colgroup>
+    <thead><tr><th>PACKAGE</th><th>CVE ID</th><th>SEVERITY</th><th>CVSS</th><th>SUMMARY</th><th>FIXED IN</th></tr></thead>
     <tbody>${cveRows}</tbody>
   </table>` : ''}
 
