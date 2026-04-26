@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://slopcheck.com';
+const BASE_URL = 'https://hookcheck.dev';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

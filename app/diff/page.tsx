@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import DiffScanner from '@/components/scanner/DiffScanner';
 
 export const metadata: Metadata = {
-  title: 'Diff Scanner — Slop Check',
+  title: 'Diff Scanner — Hook Check',
   description: 'Compare two dependency manifests and see what was added, removed, or escalated in risk.',
 };
 

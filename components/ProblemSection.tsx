@@ -15,7 +15,7 @@ export default function ProblemSection() {
             <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
               Slopsquatting is a documented, active threat. AI models suggest package names that don&apos;t exist —
               threat actors register those names on public registries within hours, load them with malicious install
-              scripts, and wait. Slop Check cross-checks every dependency in your manifest against live registry data,
+              scripts, and wait. Hook Check cross-checks every dependency in your manifest against live registry data,
               download history, and the OSV vulnerability database before a single byte executes.
             </p>
           </div>

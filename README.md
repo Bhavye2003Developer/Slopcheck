@@ -1,14 +1,14 @@
-# Slop Check
+# Hook Check
 
 **Scan AI-generated dependency manifests for hallucinated, malicious, and vulnerable packages — entirely in your browser.**
 
-Slop Check was built to address a real and growing attack vector: AI coding assistants hallucinate package names, and threat actors register those names on public registries within hours — pre-loaded with malicious install scripts. Slop Check audits every package in your manifest before a single byte executes.
+Hook Check was built to address a real and growing attack vector: AI coding assistants hallucinate package names, and threat actors register those names on public registries within hours — pre-loaded with malicious install scripts. Hook Check audits every package in your manifest before a single byte executes.
 
 ---
 
 ## What It Does
 
-Paste any dependency manifest and Slop Check checks every package across five ecosystems in seconds:
+Paste any dependency manifest and Hook Check checks every package across five ecosystems in seconds:
 
 - **Hallucination / nonexistent** — package doesn't exist on the registry at all
 - **Typosquatting signals** — newly registered, suspiciously low downloads
@@ -118,8 +118,8 @@ No backend. No database. No API proxy. Everything runs in the browser.
 ## Running Locally
 
 ```bash
-git clone https://github.com/Bhavye2003Developer/Slopcheck.git
-cd Slopcheck
+git clone https://github.com/Bhavye2003Developer/hookcheck.git
+cd hookcheck
 npm install
 npm run dev
 ```

@@ -1,4 +1,4 @@
-# Slop Check — Build Progress
+# Hook Check — Build Progress
 
 Ordered by dependency: foundation → logic → UI → integration.
 
@@ -53,7 +53,7 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 - [x] `components/Ticker.tsx` — CSS infinite marquee ticker; `tracking-wider` (not widest) to reduce word gaps in monospace
 - [x] `components/ScanReceipt.tsx` — terminal-box hero mock card showing sample scan output
 - [x] `components/Hero.tsx` — badge row (ID, STATUS, PKG-CHECKS, LATENCY, SOURCE showing all 5 ecosystems); headline; CTA buttons (SCAN NOW anchor, VIEW ON GITHUB); ScanReceipt; Ticker
-- [x] `components/ProblemSection.tsx` — two-column layout with slopsquatting threat copy; embeds `LiveStats`
+- [x] `components/ProblemSection.tsx` — two-column layout with supply chain threat copy; embeds `LiveStats`
 - [x] `components/LiveStats.tsx` — fetches live data client-side: npm CLI downloads (api.npmjs.org), PyPI top-10 package downloads (pypistats per-package sum), npm bulk downloads for 15 core packages; null stats hidden (no placeholder dashes)
 - [x] `components/ChecksGrid.tsx` — 5 check cards in 3-col grid; 5th card `lg:col-span-2` to prevent empty 6th cell
 - [x] `components/HowItWorks.tsx` — three-step PASTE / SCAN / REVIEW layout
@@ -162,11 +162,11 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 | Dependency diff | Side-by-side BEFORE/AFTER manifest comparison; categorizes added/removed/escalated/improved/stable; parallel scan; horizontally scrollable on mobile |
 | CI badge + GitHub Actions | shields.io badge URL from live scan results; inline Node.js GitHub Actions YAML for PR checks; one-click copy |
 | Threat score dial | Animated SVG semi-circle gauge (0–100); green→yellow→red gradient fill; eased count-up on scan complete; score = critical×25 + high×8 + medium×2 |
-| SARIF export | SLOP001–SLOP008 rules; error/warning/note levels; CVE entries as individual results; downloads as .sarif for GitHub code scanning |
+| SARIF export | HOOK001–HOOK008 rules; error/warning/note levels; CVE entries as individual results; downloads as .sarif for GitHub code scanning |
 | PDF report | Print-ready HTML report opens in new tab; threat score block + full package table + CVE detail table; auto-triggers `window.print()` |
 | Package Inspector (/pkg) | Single-package deep-dive: registry metadata, bundle size (bundlephobia), license color-coding, deprecated banner, OSV CVEs, OpenSSF Scorecard, direct deps, published-by username, last release relative time |
 | GitHub URL scanner (/github) | Paste any public GitHub repo or blob URL; auto-fetches manifest across branch/filename candidates; full scan pipeline |
-| SBOM export (CycloneDX 1.4) | Standard CycloneDX 1.4 JSON with PURLs, per-component slopcheck properties, and vulnerabilities array from CVE data |
+| SBOM export (CycloneDX 1.4) | Standard CycloneDX 1.4 JSON with PURLs, per-component hookcheck properties, and vulnerabilities array from CVE data |
 | OpenSSF Scorecard | Fetches `api.securityscorecards.dev` for packages with GitHub repos; shows 0–10 score + per-check breakdown (9 checks); color-coded worst-first |
 
 ---
@@ -190,7 +190,7 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 
 ## Phase 12 — Supply Chain Intelligence ✅
 
-- [x] **SBOM export (CycloneDX 1.4)** — `buildCycloneDx()` in ResultsTable; generates standard CycloneDX 1.4 JSON (`slopcheck-sbom.cdx.json`); components array with proper PURLs (`pkg:npm/...`, `pkg:pypi/...`, `pkg:cargo/...`, `pkg:gem/...`, `pkg:golang/...`); scoped npm packages encoded correctly (`%40scope%2Fname`); per-component `slopcheck:severity`, `slopcheck:flag`, `slopcheck:reason`, `slopcheck:monthly_downloads` properties; `vulnerabilities` array from CVE data with source (NVD/OSV), ratings (severity + CVSS), affected ref, fix recommendation; serial number via `crypto.randomUUID()`
+- [x] **SBOM export (CycloneDX 1.4)** — `buildCycloneDx()` in ResultsTable; generates standard CycloneDX 1.4 JSON (`hookcheck-sbom.cdx.json`); components array with proper PURLs (`pkg:npm/...`, `pkg:pypi/...`, `pkg:cargo/...`, `pkg:gem/...`, `pkg:golang/...`); scoped npm packages encoded correctly (`%40scope%2Fname`); per-component `hookcheck:severity`, `hookcheck:flag`, `hookcheck:reason`, `hookcheck:monthly_downloads` properties; `vulnerabilities` array from CVE data with source (NVD/OSV), ratings (severity + CVSS), affected ref, fix recommendation; serial number via `crypto.randomUUID()`
 - [x] **OpenSSF Scorecard** — `fetchScorecard()` in PkgInspector; queries public CORS-enabled `api.securityscorecards.dev/projects/github.com/{owner}/{repo}`; parses GitHub repo URL from registry metadata; fires in parallel after `richPromise` resolves; shows overall score + 9 key checks sorted worst-first; available for any ecosystem where the package metadata includes a GitHub repository URL (npm, cargo, rubygems)
 - [x] **Nav brand + live indicator grouped** — fixed `justify-between` 3-item float that caused NetworkMeter to drift center; brand and LIVE dot now wrapped in one `shrink-0` flex div; desktop link gap unified to `gap-6`
 

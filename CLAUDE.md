@@ -16,13 +16,13 @@ No test suite yet.
 
 ## Project
 
-**Slop Check** — browser-based tool that scans AI-generated dependency manifests for hallucinated/malicious packages. All registry checks run client-side (no server proxy). Supports npm + PyPI in v1; parsers for RubyGems/Go/Cargo planned but registry checks are "coming soon."
+**Hook Check** — browser-based tool that scans dependency manifests for malicious/suspicious packages. All registry checks run client-side (no server proxy). Supports npm + PyPI in v1; parsers for RubyGems/Go/Cargo planned but registry checks are "coming soon."
 
 Stack: Next.js 16 · React 19 · TypeScript strict · Tailwind CSS v4 · no animation libraries.
 
 ## Planned Architecture
 
-The design doc (`slopcheck-design-doc-1.md`) defines the full structure. Key modules not yet built:
+The design doc (`hookcheck-design-doc-1.md`) defines the full structure. Key modules not yet built:
 
 - `components/scanner/` — `ScanInput`, `ScanProgress`, `ResultsTable`
 - `lib/parsers/` — one file per ecosystem (parsePackageJson, parseRequirementsTxt, etc.)

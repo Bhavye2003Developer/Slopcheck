@@ -8,24 +8,24 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://slopcheck.com'),
-  title: "Slop Check - Scan AI-generated manifests for hallucinated packages",
+  metadataBase: new URL('https://hookcheck.dev'),
+  title: "Hook Check - Scan dependency manifests for malicious packages and install hooks",
   description:
-    "Paste a package.json or requirements.txt. Slop Check audits every package for hallucinated names, typosquats, malicious install scripts, and known CVEs — entirely in your browser.",
-  keywords: ['dependency scanner', 'slopsquatting', 'supply chain security', 'npm audit', 'hallucinated packages', 'AI security', 'CVE scanner'],
+    "Paste a package.json or requirements.txt. Hook Check audits every package for suspicious install scripts, typosquats, newly registered packages, low downloads, and known CVEs — entirely in your browser.",
+  keywords: ['dependency scanner', 'supply chain security', 'npm audit', 'malicious packages', 'install hook scanner', 'CVE scanner', 'package security'],
   openGraph: {
     type: 'website',
-    url: 'https://slopcheck.com',
-    title: 'Slop Check — Scan AI-generated manifests for hallucinated packages',
+    url: 'https://hookcheck.dev',
+    title: 'Hook Check — Scan dependency manifests for malicious packages and install hooks',
     description:
-      'Paste any dependency manifest. Slop Check audits every package for hallucinated names, typosquats, malicious scripts, and known CVEs — entirely in your browser.',
-    siteName: 'Slop Check',
+      'Paste any dependency manifest. Hook Check audits every package for suspicious install scripts, typosquats, malicious hooks, and known CVEs — entirely in your browser.',
+    siteName: 'Hook Check',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Slop Check — Scan AI-generated manifests for hallucinated packages',
+    title: 'Hook Check — Scan dependency manifests for malicious packages and install hooks',
     description:
-      'Paste any dependency manifest. Slop Check audits every package for hallucinated names, typosquats, malicious scripts, and known CVEs — entirely in your browser.',
+      'Paste any dependency manifest. Hook Check audits every package for suspicious install scripts, typosquats, malicious hooks, and known CVEs — entirely in your browser.',
   },
   verification: {
     google: '-OdPoSk_I5iBT_FYTWcE3w1tL1E-FubgUHX6mELy5to',

@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://slopcheck.com/sitemap.xml',
+    sitemap: 'https://hookcheck.dev/sitemap.xml',
   };
 }

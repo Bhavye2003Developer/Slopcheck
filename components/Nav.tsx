@@ -80,7 +80,7 @@ export default function Nav() {
         {/* Brand + live indicator grouped together */}
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-sm font-bold tracking-widest" style={{ color: 'var(--fg)' }}>
-            SLOPCHECK.
+            HOOKCHECK.
           </span>
           <NetworkMeter />
         </div>
@@ -105,7 +105,7 @@ export default function Nav() {
                 {l.label}
               </a>
             ))}
-            <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
+            <a href="https://github.com/Bhavye2003Developer/hookcheck" target="_blank" rel="noopener noreferrer"
               className="text-xs tracking-wider transition-colors ml-2" style={{ color: 'var(--muted)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--fg)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
@@ -143,7 +143,7 @@ export default function Nav() {
               </a>
             ))}
           </div>
-          <a href="https://github.com/Bhavye2003Developer/Slopcheck" target="_blank" rel="noopener noreferrer"
+          <a href="https://github.com/Bhavye2003Developer/hookcheck" target="_blank" rel="noopener noreferrer"
             className="text-xs tracking-wider" style={{ color: 'var(--muted)' }}
             onClick={() => setMenuOpen(false)}>
             GITHUB →

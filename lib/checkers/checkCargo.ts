@@ -18,7 +18,7 @@ export async function checkCargo(pkg: ParsedPackage, log?: NetworkLogger): Promi
   const data = await fetchWithTimeout<CargoData>(API.cargo.registry(pkg.name), {
     timeout: 4000,
     ttl: TEN_MIN,
-    fetchOptions: { headers: { 'User-Agent': 'slopcheck/1.0' } },
+    fetchOptions: { headers: { 'User-Agent': 'hookcheck/1.0' } },
     log,
     logPkg: pkg.name,
     logLabel: 'crates.io registry',

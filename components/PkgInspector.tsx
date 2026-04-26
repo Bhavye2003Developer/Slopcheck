@@ -144,7 +144,7 @@ async function fetchPypiMeta(name: string): Promise<RichMeta | null> {
 async function fetchCargoMeta(name: string): Promise<RichMeta | null> {
   try {
     const r = await fetch(`https://crates.io/api/v1/crates/${name}`, {
-      headers: { 'User-Agent': 'slopcheck.com' },
+      headers: { 'User-Agent': 'hookcheck.dev' },
     });
     if (!r.ok) return null;
     const d = await r.json();

@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import PkgInspector from '@/components/PkgInspector';
 
 export const metadata: Metadata = {
-  title: 'Package Inspector — Slop Check',
+  title: 'Package Inspector — Hook Check',
   description: 'Look up any npm, PyPI, Cargo, Go, or RubyGems package. See security flags, CVEs, download stats, maintainers, and install command in one card.',
 };
 

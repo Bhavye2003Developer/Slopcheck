@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import GithubScanner from '@/components/scanner/GithubScanner';
 
 export const metadata: Metadata = {
-  title: 'GitHub Scan — Slop Check',
+  title: 'GitHub Scan — Hook Check',
   description: 'Paste a GitHub repo URL and scan its dependency manifest for hallucinated, malicious, or vulnerable packages.',
 };
 
