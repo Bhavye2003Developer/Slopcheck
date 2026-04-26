@@ -30,7 +30,7 @@ export default function Hero() {
           <div>
             <h1
               className="text-4xl md:text-8xl font-black leading-none mb-6 md:mb-8"
-              style={{ color: 'var(--fg)' }}
+              style={{ color: 'var(--fg)', wordSpacing: '-0.15em' }}
             >
               SCAN YOUR DEPS.<br />TRUST NOTHING.
             </h1>

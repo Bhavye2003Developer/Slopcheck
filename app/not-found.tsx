@@ -11,7 +11,7 @@ export default function NotFound() {
       </p>
       <h1
         className="text-6xl md:text-8xl font-black leading-none mb-4"
-        style={{ color: 'var(--fg)' }}
+        style={{ color: 'var(--fg)', wordSpacing: '-0.15em' }}
       >
         NOT FOUND
       </h1>
