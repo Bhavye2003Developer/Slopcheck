@@ -6,7 +6,7 @@ Hook Check is built to address a real and growing attack vector: AI coding assis
 
 ---
 
-https://github.com/user-attachments/assets/9c02aa89-b506-494a-a4c1-20f899e2bd86
+[hookcheck_demo.webm](https://github.com/user-attachments/assets/92672f32-d4e8-4252-91fa-7c8b9fb7e90d)
 
 ## What It Does
 
