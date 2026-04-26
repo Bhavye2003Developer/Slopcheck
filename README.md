@@ -10,7 +10,7 @@ Hook Check is built to address a real and growing attack vector: AI coding assis
 
 ## What It Does
 
-Paste any dependency manifest and Hook Check checks every package across five ecosystems in seconds:
+Paste or drop any dependency manifest and Hook Check checks every package across five ecosystems in seconds:
 
 - **Hallucination / nonexistent** : package doesn't exist on the registry at all
 - **Typosquatting signals** : newly registered, suspiciously low downloads
@@ -40,7 +40,7 @@ All checks run client-side. No manifest is sent to any server.
 ## How It Works
 
 ```
-Paste manifest
+Paste or drop a file
       │
       ▼
 Auto-detect ecosystem
@@ -105,6 +105,7 @@ No backend. No database. No API proxy. Everything runs in the browser.
 
 ## Features
 
+- **Drag & drop** : drop any manifest file directly onto the scanner; auto-detects format and triggers scan instantly
 - **Streaming results** : each package result appears the moment its registry check resolves, no waiting for the full scan
 - **4-chart dashboard** : severity ring, CVE exposure ring, risk scatter plot, age distribution - all cross-filterable by clicking
 - **Network Trail** : collapsible log of every HTTP request made during the scan, with clickable URLs, status codes, and timing
@@ -113,7 +114,7 @@ No backend. No database. No API proxy. Everything runs in the browser.
 - **Live threat intel** : security news feed pulling recent critical CVEs (NVD) and breach/incident stories (Hacker News), shown above the scanner
 - **Per-package result cache** : rescan with dev dependencies toggled reuses all prior results instantly
 - **Network meter** : live online/offline indicator in the nav bar
-- **Export** : download results as JSON or plain text
+- **Export** : download results as JSON, plain text, SARIF, CycloneDX SBOM, or PDF report
 
 ---
 
