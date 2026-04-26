@@ -79,9 +79,9 @@ export default function Nav() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
         {/* Brand + live indicator grouped together */}
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-sm font-bold tracking-widest" style={{ color: 'var(--fg)' }}>
+          <a href="/" className="text-sm font-bold tracking-widest transition-opacity hover:opacity-70" style={{ color: 'var(--fg)' }}>
             HOOKCHECK.
-          </span>
+          </a>
           <NetworkMeter />
         </div>
 
