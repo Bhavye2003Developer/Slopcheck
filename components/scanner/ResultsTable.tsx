@@ -72,7 +72,7 @@ function VulnPill({ result }: { result: ScanResult }) {
   if (result.cveSeverity === undefined) {
     return (
       <span className="text-xs px-2 py-0.5 font-mono tracking-widest" style={{ color: 'var(--dim-lo)', border: '1px solid var(--dim-hi)' }}>
-        —
+        -
       </span>
     );
   }
@@ -197,7 +197,7 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
       <td style="color:#555">${flag}</td>
       <td>${r.reason}</td>
       <td style="color:#888">${dl}</td>
-      ${cveText ? `<td style="color:#cc5500;font-size:8pt">${cveText}</td>` : '<td style="color:#ccc">—</td>'}
+      ${cveText ? `<td style="color:#cc5500;font-size:8pt">${cveText}</td>` : '<td style="color:#ccc">-</td>'}
     </tr>`;
   }).join('');
 
@@ -206,9 +206,9 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
       <td style="font-weight:bold">${r.package.name}${r.package.version ? '@' + r.package.version : ''}</td>
       <td style="font-weight:bold;color:${cve.severity === 'CRITICAL' ? '#cc1111' : cve.severity === 'HIGH' ? '#cc5500' : '#997700'}">${cve.id}</td>
       <td style="color:${cve.severity === 'CRITICAL' ? '#cc1111' : cve.severity === 'HIGH' ? '#cc5500' : '#997700'}">${cve.severity}</td>
-      <td>${cve.cvss !== null ? cve.cvss.toFixed(1) : '—'}</td>
-      <td>${cve.summary ?? '—'}</td>
-      <td style="color:#007a2f">${cve.fixedIn ?? '—'}</td>
+      <td>${cve.cvss !== null ? cve.cvss.toFixed(1) : '-'}</td>
+      <td>${cve.summary ?? '-'}</td>
+      <td style="color:#007a2f">${cve.fixedIn ?? '-'}</td>
     </tr>`)
   ).join('');
 
@@ -216,7 +216,7 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>HookCheck — Security Audit Report</title>
+<title>HookCheck - Security Audit Report</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Courier New', Courier, monospace; background: #fff; color: #111; font-size: 10pt; line-height: 1.5; }
@@ -306,12 +306,12 @@ function buildSarif(results: ScanResult[]): string {
   type SarifLevel = 'error' | 'warning' | 'note';
 
   const FLAG_RULES: Record<FlagType, { id: string; name: string; description: string }> = {
-    nonexistent:        { id: 'HOOK001', name: 'PackageNotFound',        description: 'Package not found in registry — may be hallucinated or removed.' },
-    typosquat:          { id: 'HOOK002', name: 'PossibleTyposquat',      description: 'Package name closely resembles a popular package — possible typosquat.' },
+    nonexistent:        { id: 'HOOK001', name: 'PackageNotFound',        description: 'Package not found in registry - may be hallucinated or removed.' },
+    typosquat:          { id: 'HOOK002', name: 'PossibleTyposquat',      description: 'Package name closely resembles a popular package - possible typosquat.' },
     suspicious_script:  { id: 'HOOK003', name: 'SuspiciousInstallScript',description: 'Post-install script contains potentially dangerous commands.' },
     recently_registered:{ id: 'HOOK004', name: 'RecentlyRegistered',     description: 'Package was registered within the last 30 days.' },
-    low_downloads:      { id: 'HOOK005', name: 'LowDownloads',           description: 'Package has very few monthly downloads — low community trust signal.' },
-    low_adoption_latest:{ id: 'HOOK006', name: 'LowAdoptionLatest',      description: 'Latest version has low adoption — pinned version may be more stable.' },
+    low_downloads:      { id: 'HOOK005', name: 'LowDownloads',           description: 'Package has very few monthly downloads - low community trust signal.' },
+    low_adoption_latest:{ id: 'HOOK006', name: 'LowAdoptionLatest',      description: 'Latest version has low adoption - pinned version may be more stable.' },
     outdated:           { id: 'HOOK007', name: 'OutdatedVersion',         description: 'A newer version of this package is available.' },
     has_cve_critical:   { id: 'HOOK008', name: 'KnownVulnerability',     description: 'Package has known critical CVE(s) from OSV.dev.' },
     has_cve_high:       { id: 'HOOK008', name: 'KnownVulnerability',     description: 'Package has known high-severity CVE(s) from OSV.dev.' },
@@ -359,7 +359,7 @@ function buildSarif(results: ScanResult[]): string {
     if (!r.cves?.length) continue;
     const file = ECOSYSTEM_FILE[r.package.ecosystem] ?? 'manifest.txt';
     for (const cve of r.cves) {
-      const msg = [cve.id, cve.summary, cve.fixedIn ? `Fixed in ${cve.fixedIn}` : ''].filter(Boolean).join(' — ');
+      const msg = [cve.id, cve.summary, cve.fixedIn ? `Fixed in ${cve.fixedIn}` : ''].filter(Boolean).join(' - ');
       sarifResults.push({
         ruleId: 'HOOK008',
         level: SEVERITY_LEVEL[r.severity] as SarifLevel,
@@ -481,7 +481,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Hook Check — dependency audit
+      - name: Hook Check - dependency audit
         run: |
           node --input-type=module << 'HOOKEOF'
           import { readFileSync } from 'fs';
@@ -769,7 +769,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
               style={{ border: `1px solid ${sarifCopied ? 'var(--clean)' : 'var(--border)'}`, color: sarifCopied ? 'var(--clean)' : 'var(--fg)' }}
               onMouseEnter={e => { if (!sarifCopied) e.currentTarget.style.borderColor = 'var(--fg)'; }}
               onMouseLeave={e => { if (!sarifCopied) e.currentTarget.style.borderColor = sarifCopied ? 'var(--clean)' : 'var(--border)'; }}
-              title="Export SARIF — upload to GitHub code scanning"
+              title="Export SARIF - upload to GitHub code scanning"
             >
               {sarifCopied ? 'SAVED!' : 'SARIF'}
             </button>
@@ -779,7 +779,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
               style={{ border: `1px solid ${sbomExported ? 'var(--clean)' : 'var(--border)'}`, color: sbomExported ? 'var(--clean)' : 'var(--fg)' }}
               onMouseEnter={e => { if (!sbomExported) e.currentTarget.style.borderColor = 'var(--fg)'; }}
               onMouseLeave={e => { if (!sbomExported) e.currentTarget.style.borderColor = sbomExported ? 'var(--clean)' : 'var(--border)'; }}
-              title="Export CycloneDX 1.4 SBOM — Software Bill of Materials"
+              title="Export CycloneDX 1.4 SBOM - Software Bill of Materials"
             >
               {sbomExported ? 'SAVED!' : 'SBOM'}
             </button>
@@ -789,7 +789,7 @@ export default function ResultsTable({ results, scanning = false, scanMs }: Resu
               style={{ border: `1px solid ${pdfOpened ? 'var(--clean)' : 'var(--border)'}`, color: pdfOpened ? 'var(--clean)' : 'var(--fg)' }}
               onMouseEnter={e => { if (!pdfOpened) e.currentTarget.style.borderColor = 'var(--fg)'; }}
               onMouseLeave={e => { if (!pdfOpened) e.currentTarget.style.borderColor = pdfOpened ? 'var(--clean)' : 'var(--border)'; }}
-              title="Open print-ready report — use browser Print → Save as PDF"
+              title="Open print-ready report - use browser Print → Save as PDF"
             >
               {pdfOpened ? 'OPENED!' : 'PDF'}
             </button>

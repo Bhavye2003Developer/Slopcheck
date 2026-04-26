@@ -35,7 +35,7 @@ export default function Hero() {
               SCAN YOUR DEPS.<br />TRUST NOTHING.
             </h1>
             <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: 'var(--muted)' }}>
-              Paste any dependency manifest — package.json, requirements.txt, go.mod, Cargo.toml — and Hook Check audits every package in seconds. Flags typosquats, newly registered packages, suspiciously low downloads, malicious install scripts, and known CVEs.
+              Paste any dependency manifest - package.json, requirements.txt, go.mod, Cargo.toml - and Hook Check audits every package in seconds. Flags typosquats, newly registered packages, suspiciously low downloads, malicious install scripts, and known CVEs.
             </p>
             <div className="flex flex-wrap gap-4">
               <a

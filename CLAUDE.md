@@ -16,7 +16,7 @@ No test suite yet.
 
 ## Project
 
-**Hook Check** — browser-based tool that scans dependency manifests for malicious/suspicious packages. All registry checks run client-side (no server proxy). Supports npm + PyPI in v1; parsers for RubyGems/Go/Cargo planned but registry checks are "coming soon."
+**Hook Check** : browser-based tool that scans dependency manifests for malicious/suspicious packages. All registry checks run client-side (no server proxy). Supports npm + PyPI in v1; parsers for RubyGems/Go/Cargo planned but registry checks are "coming soon."
 
 Stack: Next.js 16 · React 19 · TypeScript strict · Tailwind CSS v4 · no animation libraries.
 
@@ -24,10 +24,10 @@ Stack: Next.js 16 · React 19 · TypeScript strict · Tailwind CSS v4 · no anim
 
 The design doc (`hookcheck-design-doc-1.md`) defines the full structure. Key modules not yet built:
 
-- `components/scanner/` — `ScanInput`, `ScanProgress`, `ResultsTable`
-- `lib/parsers/` — one file per ecosystem (parsePackageJson, parseRequirementsTxt, etc.)
-- `lib/checkers/` — `checkNpm.ts`, `checkPypi.ts`
-- `lib/types.ts` — shared `ParsedPackage`, `ScanResult`, `FlagType` types
+- `components/scanner/` : `ScanInput`, `ScanProgress`, `ResultsTable`
+- `lib/parsers/` : one file per ecosystem (parsePackageJson, parseRequirementsTxt, etc.)
+- `lib/checkers/` : `checkNpm.ts`, `checkPypi.ts`
+- `lib/types.ts` : shared `ParsedPackage`, `ScanResult`, `FlagType` types
 
 ## Scan Flow
 

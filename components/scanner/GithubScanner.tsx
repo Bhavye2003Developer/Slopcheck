@@ -150,7 +150,7 @@ export default function GithubScanner() {
         </div>
         <div className="px-4 py-4 flex flex-col gap-3">
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            Paste a GitHub repo or file URL. Supports public repos —{' '}
+            Paste a GitHub repo or file URL. Supports public repos -{' '}
             <span style={{ color: 'var(--fg)' }}>package.json, requirements.txt, go.mod, Cargo.toml, Gemfile</span>.
           </p>
           <div className="flex flex-wrap gap-3 items-start">

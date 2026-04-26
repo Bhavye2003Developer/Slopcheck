@@ -83,7 +83,7 @@ export async function checkPypi(pkg: ParsedPackage, log?: NetworkLogger): Promis
   if (squat) {
     return {
       package: pkg, flag: 'typosquat', severity: 'high', registryUrl, meta,
-      reason: `Possible typosquat of '${squat.candidate}' (${squat.candidateDlFmt}/mo) — this package has ${fmtDl(monthlyDownloads)}`,
+      reason: `Possible typosquat of '${squat.candidate}' (${squat.candidateDlFmt}/mo) - this package has ${fmtDl(monthlyDownloads)}`,
     };
   }
 

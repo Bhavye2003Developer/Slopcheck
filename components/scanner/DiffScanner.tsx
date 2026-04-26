@@ -203,7 +203,7 @@ export default function DiffScanner() {
             <span>{diff.length} total packages</span>
           </p>
 
-          {/* Table — horizontally scrollable on mobile */}
+          {/* Table - horizontally scrollable on mobile */}
           <div style={{ border: '1px solid var(--border)', maxHeight: '500px', overflowY: 'auto', overflowX: 'auto' }}>
             <div style={{ minWidth: 480 }}>
             {/* Header */}
@@ -233,10 +233,10 @@ export default function DiffScanner() {
                   </span>
                 </span>
                 <span style={{ color: row.before ? SEVERITY_COLOR[row.before.severity] : 'var(--dim-hi)' }}>
-                  {row.before ? row.before.severity.toUpperCase() : '—'}
+                  {row.before ? row.before.severity.toUpperCase() : '-'}
                 </span>
                 <span style={{ color: row.after ? SEVERITY_COLOR[row.after.severity] : 'var(--dim-hi)' }}>
-                  {row.after ? row.after.severity.toUpperCase() : '—'}
+                  {row.after ? row.after.severity.toUpperCase() : '-'}
                 </span>
               </div>
             ))}
