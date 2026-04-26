@@ -200,14 +200,20 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
   }).join('');
 
   const cveRows = results.filter(r => r.cves?.length).flatMap(r =>
-    (r.cves ?? []).map(cve => `<tr>
-      <td style="font-weight:bold">${r.package.name}${r.package.version ? '@' + r.package.version : ''}</td>
-      <td style="font-weight:bold;color:${cve.severity === 'CRITICAL' ? '#ff4444' : cve.severity === 'HIGH' ? '#ff7700' : '#ffaa00'}">${cve.id}</td>
-      <td style="color:${cve.severity === 'CRITICAL' ? '#ff4444' : cve.severity === 'HIGH' ? '#ff7700' : '#ffaa00'}">${cve.severity}</td>
-      <td>${cve.cvss !== null ? cve.cvss.toFixed(1) : '-'}</td>
-      <td>${cve.summary ?? '-'}</td>
-      <td style="color:#22ff88">${cve.fixedIn ?? '-'}</td>
-    </tr>`)
+    (r.cves ?? []).map(cve => {
+      const sc = cve.severity === 'CRITICAL' ? '#ff4444' : cve.severity === 'HIGH' ? '#ff7700' : '#ffaa00';
+      const fixedIn = cve.fixedIn
+        ? (cve.fixedIn.length > 20 ? cve.fixedIn.slice(0, 7) + '…' : cve.fixedIn)
+        : '-';
+      return `<tr>
+        <td style="font-weight:bold;word-break:break-all">${r.package.name}${r.package.version ? '<br><span style="color:#555;font-weight:normal;font-size:7pt">' + r.package.version + '</span>' : ''}</td>
+        <td style="color:${sc};word-break:break-all;font-weight:bold">${cve.id}</td>
+        <td style="color:${sc};white-space:nowrap">${cve.severity}</td>
+        <td style="white-space:nowrap">${cve.cvss !== null ? cve.cvss.toFixed(1) : '-'}</td>
+        <td style="color:#ccc">${cve.summary ?? '-'}</td>
+        <td style="color:#22ff88;white-space:nowrap">${fixedIn}</td>
+      </tr>`;
+    })
   ).join('');
 
   return `<!DOCTYPE html>
@@ -238,11 +244,11 @@ col.c-sev { width: 72px; }
 col.c-reason { width: auto; }
 col.c-dl { width: 80px; }
 col.c-cve { width: 60px; }
-col.c-id { width: 18%; }
-col.c-csev { width: 70px; }
-col.c-cvss { width: 44px; }
+col.c-id { width: 22%; }
+col.c-csev { width: 68px; }
+col.c-cvss { width: 40px; }
 col.c-sum { width: auto; }
-col.c-fix { width: 80px; }
+col.c-fix { width: 64px; }
 th { text-align: left; letter-spacing: 0.1em; font-size: 7pt; color: #666; border-bottom: 1px solid #ededed; padding: 5px 6px; white-space: nowrap; }
 td { padding: 5px 6px; border-bottom: 1px solid #1a1a1a; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
 tr:last-child td { border-bottom: none; }
