@@ -223,8 +223,8 @@ function buildReportHtml(results: ScanResult[], scanMs: number | null): string {
 <title>HookCheck - Security Audit Report</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-body { font-family: 'Courier New', Courier, monospace; background: #0a0a0a; color: #ededed; font-size: 10pt; line-height: 1.5; }
-.page { padding: 2.5cm 2.5cm 2cm; max-width: 1100px; margin: 0 auto; }
+html, body { background: #0a0a0a; color: #ededed; font-family: 'Courier New', Courier, monospace; font-size: 10pt; line-height: 1.5; }
+.page { padding: 2.5cm 2.5cm 2cm; }
 .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #ededed; padding-bottom: 14px; margin-bottom: 22px; }
 .brand { font-size: 22pt; font-weight: bold; letter-spacing: 0.08em; }
 .subtitle { font-size: 7.5pt; letter-spacing: 0.25em; color: #999; margin-top: 3px; }
@@ -255,7 +255,8 @@ tr:last-child td { border-bottom: none; }
 .footer { margin-top: 36px; border-top: 1px solid #222; padding-top: 12px; font-size: 7.5pt; color: #555; text-align: center; letter-spacing: 0.1em; }
 .print-btn { position: fixed; top: 16px; right: 16px; font-family: 'Courier New', monospace; font-size: 10pt; letter-spacing: 0.1em; padding: 8px 18px; background: #ededed; color: #0a0a0a; border: none; cursor: pointer; }
 @media print {
-  @page { margin: 1.5cm; }
+  @page { margin: 1.5cm; background: #0a0a0a; }
+  html, body { background: #0a0a0a; }
   .page { padding: 0; }
   .print-btn { display: none; }
   tr { page-break-inside: avoid; }
