@@ -236,14 +236,14 @@ async function fetchScorecard(repoUrl: string): Promise<Scorecard | null> {
 }
 
 function fmtDownloads(n?: number): string {
-  if (n === undefined) return '—';
+  if (n === undefined) return '-';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M/mo`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K/mo`;
   return `${n}/mo`;
 }
 
 function fmtAge(iso?: string): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   const days = (Date.now() - new Date(iso).getTime()) / 86400000;
   if (days < 30) return `${Math.floor(days)}d`;
   if (days < 365) return `${Math.floor(days / 30)}mo`;
@@ -251,7 +251,7 @@ function fmtAge(iso?: string): string {
 }
 
 function fmtRelTime(iso?: string): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   const days = (Date.now() - new Date(iso).getTime()) / 86400000;
   if (days < 1) return 'today';
   if (days < 2) return 'yesterday';
@@ -351,7 +351,7 @@ const SCORECARD_CHECKS = [
   'Security-Policy', 'Token-Permissions', 'Dangerous-Workflow', 'SAST', 'Fuzzing',
 ];
 
-/* PkgCard renders without an outer border — the modal container owns the border */
+/* PkgCard renders without an outer border - the modal container owns the border */
 function PkgCard({
   rich, scan, cvesPending, bundleSize, bundleSizeLoading, scorecard, scorecardLoading,
 }: {
@@ -399,7 +399,7 @@ function PkgCard({
         >
           <span className="font-bold">DEPRECATED</span>
           {rich.deprecated.toLowerCase() !== 'true' && (
-            <span className="opacity-75 ml-2 break-words">— {rich.deprecated}</span>
+            <span className="opacity-75 ml-2 break-words">- {rich.deprecated}</span>
           )}
         </div>
       )}
@@ -442,7 +442,7 @@ function PkgCard({
         )}
       </div>
 
-      {/* Stats grid — wraps naturally on narrow screens */}
+      {/* Stats grid - wraps naturally on narrow screens */}
       <div className="px-4 sm:px-5 py-4 flex flex-wrap gap-x-6 gap-y-4 sm:gap-x-8 border-b" style={{ borderColor: 'var(--border)' }}>
         {scan.meta.monthlyDownloads !== undefined && (
           <StatCell value={fmtDownloads(scan.meta.monthlyDownloads)} label="DOWNLOADS" />
@@ -470,7 +470,7 @@ function PkgCard({
         )}
       </div>
 
-      {/* Bundle size — npm only, parallel fetch */}
+      {/* Bundle size - npm only, parallel fetch */}
       {isNpm && (
         <div className="px-4 sm:px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
           <p className="text-xs tracking-widest mb-3" style={{ color: 'var(--muted)' }}>BUNDLE SIZE</p>

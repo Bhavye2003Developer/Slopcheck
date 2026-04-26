@@ -110,7 +110,7 @@ function Ring({
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 12, overflow: 'hidden' }}>
-      {/* legend — shrinkable */}
+      {/* legend - shrinkable */}
       <div style={{ width: 110, flexShrink: 1, minWidth: 80 }}>
         {arcs.map((a, i) => {
           const isActive = activeVal === a.filterVal;
@@ -136,7 +136,7 @@ function Ring({
         })}
       </div>
 
-      {/* ring — shrinkable */}
+      {/* ring - shrinkable */}
       <div style={{ width: 160, flexShrink: 1, minWidth: 110, display: 'flex', alignItems: 'center' }}>
         <svg
           viewBox={`0 0 ${SZ} ${SZ}`}
@@ -458,7 +458,7 @@ export default function ScanCharts({
       {filter && (
         <div className="flex items-center justify-between px-1">
           <p style={{ fontSize: 11, color: 'var(--dim-lo)' }}>
-            Showing filtered results —
+            Showing filtered results -
             <span style={{ color: 'var(--dim-label)' }}> {results.filter(r => matchesFilter(r, filter)).length} of {results.length} packages</span>
           </p>
           <button

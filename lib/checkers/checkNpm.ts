@@ -92,13 +92,13 @@ export async function checkNpm(pkg: ParsedPackage, log?: NetworkLogger): Promise
     }
   }
 
-  // Typosquat check — skip only for suspicious_script (already worst case)
+  // Typosquat check - skip only for suspicious_script (already worst case)
   if (flag !== 'suspicious_script') {
     const squat = await checkTyposquatNpm(pkg.name, monthlyDownloads, log);
     if (squat) {
       return {
         package: pkg, flag: 'typosquat', severity: 'high', registryUrl, meta,
-        reason: `Possible typosquat of '${squat.candidate}' (${squat.candidateDlFmt}/mo) — this package has ${fmtDl(monthlyDownloads)}`,
+        reason: `Possible typosquat of '${squat.candidate}' (${squat.candidateDlFmt}/mo) - this package has ${fmtDl(monthlyDownloads)}`,
       };
     }
   }

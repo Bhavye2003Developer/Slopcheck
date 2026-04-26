@@ -39,7 +39,7 @@ export default function ScannerSection() {
         setIsSharedView(true);
       });
     } catch {
-      // malformed hash — ignore silently
+      // malformed hash - ignore silently
     }
   }, []);
 

@@ -33,7 +33,7 @@
   --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
 }
 
-/* System preference — applies when no class overrides */
+/* System preference - applies when no class overrides */
 @media (prefers-color-scheme: light) {
   :root:not(.dark) {
     --bg: #f4f4f0;
@@ -62,7 +62,7 @@
   }
 }
 
-/* Explicit user override — light */
+/* Explicit user override - light */
 :root.light {
   /* ── Brand ───────────────────────── */
   --bg: #f4f4f0;
@@ -94,7 +94,7 @@
   --scrollbar: #cccccc;
 }
 
-/* Explicit user override — dark (wins over system light pref) */
+/* Explicit user override - dark (wins over system light pref) */
 :root.dark {
   --bg: #0a0a0a;
   --fg: #ededed;

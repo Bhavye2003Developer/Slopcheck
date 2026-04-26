@@ -131,7 +131,7 @@ export default function SecurityNews() {
 
     const nvdUrl =
       `https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=20&pubStartDate=${start}&pubEndDate=${end}`;
-    // search_by_date returns newest-first — no date filter needed, points>10 filters noise
+    // search_by_date returns newest-first - no date filter needed, points>10 filters noise
     const hnUrl =
       `https://hn.algolia.com/api/v1/search_by_date?query=security+hacked+breach+vulnerability+exploit&tags=story&hitsPerPage=10&numericFilters=points>10`;
 
