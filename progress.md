@@ -169,6 +169,8 @@ All checkers use `fetchWithTimeout` (AbortController + URL cache + TTL) for reli
 | SBOM export (CycloneDX 1.4) | Standard CycloneDX 1.4 JSON with PURLs, per-component hookcheck properties, and vulnerabilities array from CVE data |
 | OpenSSF Scorecard | Fetches `api.securityscorecards.dev` for packages with GitHub repos; shows 0–10 score + per-check breakdown (9 checks); color-coded worst-first |
 | Drag & drop file upload | Drop any manifest file onto ScanInput; amber dashed overlay with `DROP TO SCAN` shown on drag-enter; FileReader reads text and auto-triggers scan; `dragCounter` ref prevents flicker on child re-enters; border transitions amber on drag; responsive overlay text scales `text-2xl md:text-3xl`; footer row `flex-wrap` so checkbox + button stack on narrow screens |
+| Copy as Markdown | MD button in ResultsTable export bar copies results as a formatted markdown table (package, ecosystem, severity, reason + CVE count) with summary line and hookcheck.dev attribution; ready to paste into GitHub PRs, issues, or Slack; green flash on copy |
+| Ctrl+Enter shortcut | `Ctrl+Enter` / `Cmd+Enter` triggers scan from the textarea; `⌃↵` hint shown next to SCAN button once content is present; hint hidden on mobile (`hidden sm:block`) to save space |
 
 ---
 
